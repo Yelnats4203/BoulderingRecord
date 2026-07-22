@@ -2,20 +2,21 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"D:\\BoulderingRecord\\.claude\\hooks\\log-bash-command.ps1\""
-          }
-        ]
-      },
-      {
         "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"D:\\BoulderingRecord\\.claude\\hooks\\format-cs-file.ps1\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"D:\\BoulderingRecord\\.claude\\hooks\\log-user-prompt.ps1\""
           }
         ]
       }
