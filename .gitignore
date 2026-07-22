@@ -1,0 +1,38 @@
+## .NET
+bin/
+obj/
+out/
+
+## Visual Studio
+.vs/
+*.user
+*.suo
+
+## Rider / JetBrains
+.idea/
+
+## VS Code
+.vscode/
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+## Test results
+[Tt]est[Rr]esult*/
+*.trx
+
+## NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+
+## Logs
+*.log
+
+## OS files
+.DS_Store
+Thumbs.db
