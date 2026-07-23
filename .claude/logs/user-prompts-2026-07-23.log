@@ -25,3 +25,5 @@
 [2026-07-23 17:13:35] 現在想實作登入系統：1. 使用JWT token驗證，token有效期2小時。  2.token在server端儲存，每次同一帳號重複登入時刷新，避免重複登入。用Redis，目前用記憶體快取即可。  3.  實作用於controller及action端點的attribute，未來需要token驗證的API將使用。  4. 實作一方法更新token用，未來前端操作時會定時向server更新token。  5. 登出時刪除暫存的token
 [2026-07-23 17:15:46] promt log，也把claude指令寫入，例如/plan這種
 [2026-07-23 17:21:56] 先將hook的修改git commit
+[2026-07-23 17:22:24] 接續登入系統
+[2026-07-23 17:54:59] git commit

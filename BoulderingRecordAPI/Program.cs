@@ -11,6 +11,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddBoulderingRecordDatabase(builder.Configuration);
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
