@@ -1,3 +1,6 @@
+using BoulderingRecordAPI.Data;
+using BoulderingRecordAPI.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddBoulderingRecordDatabase(builder.Configuration);
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
