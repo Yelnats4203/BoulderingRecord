@@ -32,6 +32,7 @@ x86/
 
 ## Logs
 *.log
+!.claude/logs/user-prompts-*.log
 
 ## OS files
 .DS_Store
