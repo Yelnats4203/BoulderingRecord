@@ -8,6 +8,8 @@ public class BoulderingRecordDbContext(DbContextOptions<BoulderingRecordDbContex
 {
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<Record> Records => Set<Record>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -18,6 +20,19 @@ public class BoulderingRecordDbContext(DbContextOptions<BoulderingRecordDbContex
             entity.Property(u => u.Acc).IsRequired();
             entity.HasIndex(u => u.Acc).IsUnique();
             entity.Property(u => u.Psw).IsRequired();
+        });
+
+        modelBuilder.Entity<Record>(entity =>
+        {
+            entity.HasKey(r => r.Id);
+            entity.Property(r => r.GymName).HasMaxLength(200);
+            entity.Property(r => r.UploadedAt).IsRequired();
+            entity.Property(r => r.VideoPath).IsRequired();
+            entity.Property(r => r.Note).HasMaxLength(1000);
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(r => r.UploaderId)
+                .IsRequired();
         });
     }
 }
