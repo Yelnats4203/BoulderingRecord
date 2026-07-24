@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BoulderingRecordAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -9,7 +10,7 @@ public class TokenAuthorizationFilter(ITokenService tokenService, IActiveTokenSt
 {
     public Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
-        var header = context.HttpContext.Request.Headers.Authorization.ToString();
+        string header = context.HttpContext.Request.Headers.Authorization.ToString();
 
         if (string.IsNullOrEmpty(header) || !header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
@@ -17,23 +18,23 @@ public class TokenAuthorizationFilter(ITokenService tokenService, IActiveTokenSt
             return Task.CompletedTask;
         }
 
-        var token = header["Bearer ".Length..].Trim();
+        string token = header["Bearer ".Length..].Trim();
 
-        var principal = tokenService.ValidateToken(token);
+        ClaimsPrincipal? principal = tokenService.ValidateToken(token);
         if (principal is null)
         {
             context.Result = new UnauthorizedResult();
             return Task.CompletedTask;
         }
 
-        var acc = principal.FindFirst(TokenClaimTypes.Acc)?.Value;
+        string? acc = principal.FindFirst(TokenClaimTypes.Acc)?.Value;
         if (string.IsNullOrEmpty(acc))
         {
             context.Result = new UnauthorizedResult();
             return Task.CompletedTask;
         }
 
-        if (!tokenStore.TryGetActiveToken(acc, out var activeToken) ||
+        if (!tokenStore.TryGetActiveToken(acc, out string? activeToken) ||
             !string.Equals(activeToken, token, StringComparison.Ordinal))
         {
             context.Result = new UnauthorizedResult();

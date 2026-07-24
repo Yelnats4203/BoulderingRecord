@@ -12,10 +12,10 @@ public class LocalVideoStorageService(IOptions<VideoStorageOptions> options) : I
     {
         Directory.CreateDirectory(_options.Directory);
 
-        var fileName = $"{recordId}{Path.GetExtension(video.FileName)}";
-        var filePath = Path.Combine(_options.Directory, fileName);
+        string fileName = $"{recordId}{Path.GetExtension(video.FileName)}";
+        string filePath = Path.Combine(_options.Directory, fileName);
 
-        await using var stream = new FileStream(filePath, FileMode.Create);
+        await using FileStream stream = new FileStream(filePath, FileMode.Create);
         await video.CopyToAsync(stream, cancellationToken);
 
         return filePath;

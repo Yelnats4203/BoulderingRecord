@@ -20,19 +20,19 @@ public class AuthController(
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByAccAsync(request.Acc, cancellationToken);
+        User? user = await userRepository.GetByAccAsync(request.Acc, cancellationToken);
         if (user is null)
         {
             return Unauthorized();
         }
 
-        var verificationResult = PasswordHasher.VerifyHashedPassword(user, user.Psw, request.Psw);
+        PasswordVerificationResult verificationResult = PasswordHasher.VerifyHashedPassword(user, user.Psw, request.Psw);
         if (verificationResult == PasswordVerificationResult.Failed)
         {
             return Unauthorized();
         }
 
-        var (token, expiresAt) = tokenService.GenerateToken(user);
+        (string token, DateTimeOffset expiresAt) = tokenService.GenerateToken(user);
         tokenStore.SetActiveToken(user.Acc, token, expiresAt);
 
         return Ok(new LoginResponse(token, expiresAt));
@@ -42,7 +42,7 @@ public class AuthController(
     [HttpPost("logout")]
     public IActionResult Logout()
     {
-        var acc = User.FindFirst(TokenClaimTypes.Acc)?.Value;
+        string? acc = User.FindFirst(TokenClaimTypes.Acc)?.Value;
         if (string.IsNullOrEmpty(acc))
         {
             return Unauthorized();
@@ -56,19 +56,19 @@ public class AuthController(
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
     {
-        var acc = User.FindFirst(TokenClaimTypes.Acc)?.Value;
+        string? acc = User.FindFirst(TokenClaimTypes.Acc)?.Value;
         if (string.IsNullOrEmpty(acc))
         {
             return Unauthorized();
         }
 
-        var user = await userRepository.GetByAccAsync(acc, cancellationToken);
+        User? user = await userRepository.GetByAccAsync(acc, cancellationToken);
         if (user is null)
         {
             return Unauthorized();
         }
 
-        var (newToken, expiresAt) = tokenService.GenerateToken(user);
+        (string newToken, DateTimeOffset expiresAt) = tokenService.GenerateToken(user);
         tokenStore.SetActiveToken(acc, newToken, expiresAt);
 
         return Ok(new RefreshTokenResponse(newToken, expiresAt));

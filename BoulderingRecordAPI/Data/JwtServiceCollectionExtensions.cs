@@ -9,7 +9,7 @@ public static class JwtServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var section = configuration.GetSection(JwtSettings.SectionName);
+        IConfigurationSection section = configuration.GetSection(JwtSettings.SectionName);
         if (!section.Exists())
         {
             throw new InvalidOperationException("設定區塊 'Jwt' 未設定。");

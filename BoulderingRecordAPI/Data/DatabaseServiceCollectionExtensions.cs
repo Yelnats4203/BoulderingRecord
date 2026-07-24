@@ -8,10 +8,10 @@ public static class DatabaseServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var provider = configuration.GetValue<DatabaseProvider?>("Database:Provider")
+        DatabaseProvider provider = configuration.GetValue<DatabaseProvider?>("Database:Provider")
             ?? throw new InvalidOperationException("設定值 'Database:Provider' 未設定。");
 
-        var connectionString = configuration.GetConnectionString(provider.ToString())
+        string connectionString = configuration.GetConnectionString(provider.ToString())
             ?? throw new InvalidOperationException($"找不到 provider '{provider}' 對應的連線字串。");
 
         services.AddDbContext<BoulderingRecordDbContext>(options =>

@@ -36,12 +36,12 @@ public class AuthControllerTests
 
     private static AuthController CreateController(User user, ITokenService tokenService, FakeActiveTokenStore tokenStore, string? authenticatedAcc = null)
     {
-        var controller = new AuthController(new FakeUserRepository([user]), tokenService, tokenStore);
+        AuthController controller = new AuthController(new FakeUserRepository([user]), tokenService, tokenStore);
 
-        var httpContext = new DefaultHttpContext();
+        DefaultHttpContext httpContext = new DefaultHttpContext();
         if (authenticatedAcc is not null)
         {
-            var identity = new ClaimsIdentity([new Claim(TokenClaimTypes.Acc, authenticatedAcc)], "Test");
+            ClaimsIdentity identity = new ClaimsIdentity([new Claim(TokenClaimTypes.Acc, authenticatedAcc)], "Test");
             httpContext.User = new ClaimsPrincipal(identity);
         }
 
@@ -52,25 +52,25 @@ public class AuthControllerTests
     [Fact]
     public async Task Login_ValidCredentials_ReturnsOkWithToken_AndStoresInCache()
     {
-        var user = CreateTestUser();
-        var tokenStore = new FakeActiveTokenStore();
-        var controller = CreateController(user, CreateTokenService(), tokenStore);
+        User user = CreateTestUser();
+        FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
+        AuthController controller = CreateController(user, CreateTokenService(), tokenStore);
 
-        var result = await controller.Login(new LoginRequest(TestAcc, TestPassword), CancellationToken.None);
+        IActionResult result = await controller.Login(new LoginRequest(TestAcc, TestPassword), CancellationToken.None);
 
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var response = Assert.IsType<LoginResponse>(okResult.Value);
-        Assert.True(tokenStore.TryGetActiveToken(TestAcc, out var storedToken));
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        LoginResponse response = Assert.IsType<LoginResponse>(okResult.Value);
+        Assert.True(tokenStore.TryGetActiveToken(TestAcc, out string? storedToken));
         Assert.Equal(response.Token, storedToken);
     }
 
     [Fact]
     public async Task Login_InvalidPassword_ReturnsUnauthorized()
     {
-        var user = CreateTestUser();
-        var controller = CreateController(user, CreateTokenService(), new FakeActiveTokenStore());
+        User user = CreateTestUser();
+        AuthController controller = CreateController(user, CreateTokenService(), new FakeActiveTokenStore());
 
-        var result = await controller.Login(new LoginRequest(TestAcc, "wrong-password"), CancellationToken.None);
+        IActionResult result = await controller.Login(new LoginRequest(TestAcc, "wrong-password"), CancellationToken.None);
 
         Assert.IsType<UnauthorizedResult>(result);
     }
@@ -78,10 +78,10 @@ public class AuthControllerTests
     [Fact]
     public async Task Login_UnknownAcc_ReturnsUnauthorized()
     {
-        var user = CreateTestUser();
-        var controller = CreateController(user, CreateTokenService(), new FakeActiveTokenStore());
+        User user = CreateTestUser();
+        AuthController controller = CreateController(user, CreateTokenService(), new FakeActiveTokenStore());
 
-        var result = await controller.Login(new LoginRequest("no-such-acc", TestPassword), CancellationToken.None);
+        IActionResult result = await controller.Login(new LoginRequest("no-such-acc", TestPassword), CancellationToken.None);
 
         Assert.IsType<UnauthorizedResult>(result);
     }
@@ -89,18 +89,18 @@ public class AuthControllerTests
     [Fact]
     public async Task Login_SameAccTwice_OldTokenInvalidated_NewTokenActive()
     {
-        var user = CreateTestUser();
-        var tokenStore = new FakeActiveTokenStore();
-        var tokenService = CreateTokenService();
-        var controller = CreateController(user, tokenService, tokenStore);
+        User user = CreateTestUser();
+        FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
+        ITokenService tokenService = CreateTokenService();
+        AuthController controller = CreateController(user, tokenService, tokenStore);
 
-        var firstResult = await controller.Login(new LoginRequest(TestAcc, TestPassword), CancellationToken.None);
-        var firstToken = ((LoginResponse)((OkObjectResult)firstResult).Value!).Token;
+        IActionResult firstResult = await controller.Login(new LoginRequest(TestAcc, TestPassword), CancellationToken.None);
+        string firstToken = ((LoginResponse)((OkObjectResult)firstResult).Value!).Token;
 
-        var secondResult = await controller.Login(new LoginRequest(TestAcc, TestPassword), CancellationToken.None);
-        var secondToken = ((LoginResponse)((OkObjectResult)secondResult).Value!).Token;
+        IActionResult secondResult = await controller.Login(new LoginRequest(TestAcc, TestPassword), CancellationToken.None);
+        string secondToken = ((LoginResponse)((OkObjectResult)secondResult).Value!).Token;
 
-        Assert.True(tokenStore.TryGetActiveToken(TestAcc, out var activeToken));
+        Assert.True(tokenStore.TryGetActiveToken(TestAcc, out string? activeToken));
         Assert.Equal(secondToken, activeToken);
         Assert.NotEqual(firstToken, activeToken);
     }
@@ -108,12 +108,12 @@ public class AuthControllerTests
     [Fact]
     public void Logout_RemovesActiveToken()
     {
-        var user = CreateTestUser();
-        var tokenStore = new FakeActiveTokenStore();
+        User user = CreateTestUser();
+        FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
         tokenStore.SetActiveToken(TestAcc, "some-token", DateTimeOffset.UtcNow.AddHours(2));
-        var controller = CreateController(user, CreateTokenService(), tokenStore, authenticatedAcc: TestAcc);
+        AuthController controller = CreateController(user, CreateTokenService(), tokenStore, authenticatedAcc: TestAcc);
 
-        var result = controller.Logout();
+        IActionResult result = controller.Logout();
 
         Assert.IsType<NoContentResult>(result);
         Assert.False(tokenStore.TryGetActiveToken(TestAcc, out _));
@@ -122,17 +122,17 @@ public class AuthControllerTests
     [Fact]
     public async Task Refresh_ReturnsNewToken_OldTokenNoLongerActive()
     {
-        var user = CreateTestUser();
-        var tokenStore = new FakeActiveTokenStore();
+        User user = CreateTestUser();
+        FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
         const string oldToken = "old-token";
         tokenStore.SetActiveToken(TestAcc, oldToken, DateTimeOffset.UtcNow.AddHours(2));
-        var controller = CreateController(user, CreateTokenService(), tokenStore, authenticatedAcc: TestAcc);
+        AuthController controller = CreateController(user, CreateTokenService(), tokenStore, authenticatedAcc: TestAcc);
 
-        var result = await controller.Refresh(CancellationToken.None);
+        IActionResult result = await controller.Refresh(CancellationToken.None);
 
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var response = Assert.IsType<RefreshTokenResponse>(okResult.Value);
-        Assert.True(tokenStore.TryGetActiveToken(TestAcc, out var activeToken));
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        RefreshTokenResponse response = Assert.IsType<RefreshTokenResponse>(okResult.Value);
+        Assert.True(tokenStore.TryGetActiveToken(TestAcc, out string? activeToken));
         Assert.Equal(response.Token, activeToken);
         Assert.NotEqual(oldToken, activeToken);
     }

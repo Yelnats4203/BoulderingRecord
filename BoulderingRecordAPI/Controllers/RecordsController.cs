@@ -18,13 +18,13 @@ public class RecordsController(
     [HttpPost]
     public async Task<IActionResult> Upload([FromForm] UploadRecordRequest request, CancellationToken cancellationToken)
     {
-        var uploaderId = GetUploaderId();
+        Guid? uploaderId = GetUploaderId();
         if (uploaderId is null)
         {
             return Unauthorized();
         }
 
-        var record = new Record
+        Record record = new Record
         {
             GymName = request.GymName,
             Difficulty = request.Difficulty,
@@ -44,14 +44,14 @@ public class RecordsController(
     [HttpGet]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
-        var records = await recordRepository.GetAllAsync(cancellationToken);
+        List<Record> records = await recordRepository.GetAllAsync(cancellationToken);
         return Ok(records.Select(RecordResponse.FromEntity));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var record = await recordRepository.GetByIdAsync(id, cancellationToken);
+        Record? record = await recordRepository.GetByIdAsync(id, cancellationToken);
         if (record is null)
         {
             return NotFound();
@@ -62,7 +62,7 @@ public class RecordsController(
 
     private Guid? GetUploaderId()
     {
-        var value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(value, out var id) ? id : null;
+        string? value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(value, out Guid id) ? id : null;
     }
 }

@@ -25,13 +25,13 @@ public class TokenAuthorizationFilterTests
 
     private static AuthorizationFilterContext CreateContext(string? authorizationHeader)
     {
-        var httpContext = new DefaultHttpContext();
+        DefaultHttpContext httpContext = new DefaultHttpContext();
         if (authorizationHeader is not null)
         {
             httpContext.Request.Headers.Authorization = authorizationHeader;
         }
 
-        var actionContext = new Microsoft.AspNetCore.Mvc.ActionContext(
+        Microsoft.AspNetCore.Mvc.ActionContext actionContext = new Microsoft.AspNetCore.Mvc.ActionContext(
             httpContext,
             new Microsoft.AspNetCore.Routing.RouteData(),
             new ActionDescriptor());
@@ -42,8 +42,8 @@ public class TokenAuthorizationFilterTests
     [Fact]
     public async Task OnAuthorizationAsync_NoAuthorizationHeader_ReturnsUnauthorized()
     {
-        var filter = new TokenAuthorizationFilter(CreateTokenService(), new FakeActiveTokenStore());
-        var context = CreateContext(authorizationHeader: null);
+        TokenAuthorizationFilter filter = new TokenAuthorizationFilter(CreateTokenService(), new FakeActiveTokenStore());
+        AuthorizationFilterContext context = CreateContext(authorizationHeader: null);
 
         await filter.OnAuthorizationAsync(context);
 
@@ -53,13 +53,13 @@ public class TokenAuthorizationFilterTests
     [Fact]
     public async Task OnAuthorizationAsync_ExpiredToken_ReturnsUnauthorized()
     {
-        var tokenService = CreateTokenService(accessTokenExpiresMinutes: -10);
-        var tokenStore = new FakeActiveTokenStore();
-        var (token, expiresAt) = tokenService.GenerateToken(CreateTestUser());
+        ITokenService tokenService = CreateTokenService(accessTokenExpiresMinutes: -10);
+        FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
+        (string token, DateTimeOffset expiresAt) = tokenService.GenerateToken(CreateTestUser());
         tokenStore.SetActiveToken(TestAcc, token, expiresAt);
 
-        var filter = new TokenAuthorizationFilter(tokenService, tokenStore);
-        var context = CreateContext($"Bearer {token}");
+        TokenAuthorizationFilter filter = new TokenAuthorizationFilter(tokenService, tokenStore);
+        AuthorizationFilterContext context = CreateContext($"Bearer {token}");
 
         await filter.OnAuthorizationAsync(context);
 
@@ -69,14 +69,14 @@ public class TokenAuthorizationFilterTests
     [Fact]
     public async Task OnAuthorizationAsync_TamperedToken_ReturnsUnauthorized()
     {
-        var tokenService = CreateTokenService();
-        var tokenStore = new FakeActiveTokenStore();
-        var (token, expiresAt) = tokenService.GenerateToken(CreateTestUser());
+        ITokenService tokenService = CreateTokenService();
+        FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
+        (string token, DateTimeOffset expiresAt) = tokenService.GenerateToken(CreateTestUser());
         tokenStore.SetActiveToken(TestAcc, token, expiresAt);
-        var tamperedToken = token[..^1] + (token[^1] == 'A' ? 'B' : 'A');
+        string tamperedToken = token[..^1] + (token[^1] == 'A' ? 'B' : 'A');
 
-        var filter = new TokenAuthorizationFilter(tokenService, tokenStore);
-        var context = CreateContext($"Bearer {tamperedToken}");
+        TokenAuthorizationFilter filter = new TokenAuthorizationFilter(tokenService, tokenStore);
+        AuthorizationFilterContext context = CreateContext($"Bearer {tamperedToken}");
 
         await filter.OnAuthorizationAsync(context);
 
@@ -86,15 +86,15 @@ public class TokenAuthorizationFilterTests
     [Fact]
     public async Task OnAuthorizationAsync_ValidTokenNotMatchingCache_ReturnsUnauthorized()
     {
-        var tokenService = CreateTokenService();
-        var tokenStore = new FakeActiveTokenStore();
-        var (oldToken, _) = tokenService.GenerateToken(CreateTestUser());
+        ITokenService tokenService = CreateTokenService();
+        FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
+        (string oldToken, DateTimeOffset _) = tokenService.GenerateToken(CreateTestUser());
         // 模擬已被新登入取代：快取內是另一組 token
-        var (newToken, expiresAt) = tokenService.GenerateToken(CreateTestUser());
+        (string newToken, DateTimeOffset expiresAt) = tokenService.GenerateToken(CreateTestUser());
         tokenStore.SetActiveToken(TestAcc, newToken, expiresAt);
 
-        var filter = new TokenAuthorizationFilter(tokenService, tokenStore);
-        var context = CreateContext($"Bearer {oldToken}");
+        TokenAuthorizationFilter filter = new TokenAuthorizationFilter(tokenService, tokenStore);
+        AuthorizationFilterContext context = CreateContext($"Bearer {oldToken}");
 
         await filter.OnAuthorizationAsync(context);
 
@@ -105,13 +105,13 @@ public class TokenAuthorizationFilterTests
     [Fact]
     public async Task OnAuthorizationAsync_ValidTokenMatchingCache_SetsHttpContextUser()
     {
-        var tokenService = CreateTokenService();
-        var tokenStore = new FakeActiveTokenStore();
-        var (token, expiresAt) = tokenService.GenerateToken(CreateTestUser());
+        ITokenService tokenService = CreateTokenService();
+        FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
+        (string token, DateTimeOffset expiresAt) = tokenService.GenerateToken(CreateTestUser());
         tokenStore.SetActiveToken(TestAcc, token, expiresAt);
 
-        var filter = new TokenAuthorizationFilter(tokenService, tokenStore);
-        var context = CreateContext($"Bearer {token}");
+        TokenAuthorizationFilter filter = new TokenAuthorizationFilter(tokenService, tokenStore);
+        AuthorizationFilterContext context = CreateContext($"Bearer {token}");
 
         await filter.OnAuthorizationAsync(context);
 

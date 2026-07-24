@@ -3,7 +3,7 @@ using BoulderingRecordAPI.Options;
 using BoulderingRecordAPI.Repositories;
 using BoulderingRecordAPI.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
@@ -19,7 +19,7 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.Configure<VideoStorageOptions>(builder.Configuration.GetSection(VideoStorageOptions.SectionName));
 builder.Services.AddScoped<IVideoStorageService, LocalVideoStorageService>();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

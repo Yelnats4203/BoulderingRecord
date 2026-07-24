@@ -18,6 +18,10 @@ dotnet run --project BoulderingRecordAPI
 
 測試：目前尚未建立測試專案。之後新增測試專案時採用 xUnit。
 
+## 程式碼慣例
+
+- **不使用 `var`**：區域變數一律宣告明確型別，禁止使用 `var`（包含 `out var`、tuple 解構等寫法），以利閱讀時清楚掌握型別資訊。
+
 ## 資料持久化架構
 
 資料存取層規劃為抽象化的 repository 層（以介面為主，不直接綁定特定 EF Core provider），讓同一套程式碼可以搭配兩種不同的 EF Core provider 運作：

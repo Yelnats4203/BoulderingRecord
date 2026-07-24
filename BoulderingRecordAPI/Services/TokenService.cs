@@ -14,9 +14,9 @@ public class TokenService(IOptions<JwtSettings> jwtOptions) : ITokenService
 
     public (string Token, DateTimeOffset ExpiresAt) GenerateToken(User user)
     {
-        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(_settings.AccessTokenExpiresMinutes);
+        DateTimeOffset expiresAt = DateTimeOffset.UtcNow.AddMinutes(_settings.AccessTokenExpiresMinutes);
 
-        var claims = new[]
+        Claim[] claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -24,26 +24,26 @@ public class TokenService(IOptions<JwtSettings> jwtOptions) : ITokenService
             new Claim(ClaimTypes.Name, user.Username),
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
+        SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var token = new JwtSecurityToken(
+        JwtSecurityToken token = new JwtSecurityToken(
             issuer: _settings.Issuer,
             audience: _settings.Audience,
             claims: claims,
             expires: expiresAt.UtcDateTime,
             signingCredentials: credentials);
 
-        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+        string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
         return (tokenString, expiresAt);
     }
 
     public ClaimsPrincipal? ValidateToken(string token)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
-        var handler = new JwtSecurityTokenHandler();
+        SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
+        JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
 
-        var parameters = new TokenValidationParameters
+        TokenValidationParameters parameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidIssuer = _settings.Issuer,

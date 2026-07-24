@@ -35,6 +35,10 @@ dotnet test
 
 新增實體（entity）或資料存取邏輯時，provider 相關設定會隔離在 `DbContext` 設定或 provider 切換邏輯中，切換 SQLite ↔ MSSQL 不需更動 repository 或商業邏輯程式碼。
 
+## 程式碼慣例
+
+- **不使用 `var`**：區域變數一律宣告明確型別，禁止使用 `var`（包含 `out var`、tuple 解構等寫法），以利閱讀時清楚掌握型別資訊。
+
 ## Claude Code Hooks
 
 本專案在 `.claude/settings.json` 中設定了以下 hooks：
