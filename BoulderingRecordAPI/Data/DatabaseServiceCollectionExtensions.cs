@@ -14,20 +14,19 @@ public static class DatabaseServiceCollectionExtensions
         string connectionString = configuration.GetConnectionString(provider.ToString())
             ?? throw new InvalidOperationException($"找不到 provider '{provider}' 對應的連線字串。");
 
-        services.AddDbContext<BoulderingRecordDbContext>(options =>
+        switch (provider)
         {
-            switch (provider)
-            {
-                case DatabaseProvider.SqlServer:
-                    options.UseSqlServer(connectionString);
-                    break;
-                case DatabaseProvider.Sqlite:
-                    options.UseSqlite(connectionString);
-                    break;
-                default:
-                    throw new InvalidOperationException($"不支援的 provider '{provider}'。");
-            }
-        });
+            case DatabaseProvider.SqlServer:
+                services.AddDbContext<BoulderingRecordDbContext, BoulderingRecordSqlServerDbContext>(
+                    options => options.UseSqlServer(connectionString));
+                break;
+            case DatabaseProvider.Sqlite:
+                services.AddDbContext<BoulderingRecordDbContext, BoulderingRecordSqliteDbContext>(
+                    options => options.UseSqlite(connectionString));
+                break;
+            default:
+                throw new InvalidOperationException($"不支援的 provider '{provider}'。");
+        }
 
         return services;
     }

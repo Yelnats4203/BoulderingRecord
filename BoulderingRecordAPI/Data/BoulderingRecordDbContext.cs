@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BoulderingRecordAPI.Data;
 
-public class BoulderingRecordDbContext(DbContextOptions<BoulderingRecordDbContext> options)
+public class BoulderingRecordDbContext(DbContextOptions options)
     : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
