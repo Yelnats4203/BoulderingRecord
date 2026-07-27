@@ -9,4 +9,5 @@ public class Record
     public Guid UploaderId { get; set; }
     public string VideoPath { get; set; } = string.Empty;
     public string? Note { get; set; }
+    public RecordVisibility Visibility { get; set; } = RecordVisibility.Private;
 }

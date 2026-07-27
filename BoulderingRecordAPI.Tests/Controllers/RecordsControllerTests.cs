@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using BoulderingRecordAPI.Controllers;
+using BoulderingRecordAPI.Entities;
 using BoulderingRecordAPI.Models.Records;
 using BoulderingRecordAPI.Tests.Fakes;
 using Microsoft.AspNetCore.Http;
@@ -106,5 +107,110 @@ public class RecordsControllerTests
         IActionResult result = await controller.GetById(Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task GetVideo_UnknownId_ReturnsNotFound()
+    {
+        RecordsController controller = CreateController();
+
+        IActionResult result = await controller.GetVideo(Guid.CreateVersion7(), CancellationToken.None);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task GetVideo_PrivateRecord_NotOwner_ReturnsNotFound()
+    {
+        Record record = new Record
+        {
+            UploaderId = Guid.CreateVersion7(),
+            UploadedAt = DateTimeOffset.UtcNow,
+            VideoPath = "someone-else.mp4",
+            Visibility = RecordVisibility.Private,
+        };
+        RecordsController controller = CreateController(new FakeRecordRepository([record]));
+
+        IActionResult result = await controller.GetVideo(record.Id, CancellationToken.None);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task GetVideo_PrivateRecord_Owner_ReturnsPhysicalFile()
+    {
+        string videoPath = CreateTempVideoFile();
+        try
+        {
+            Record record = new Record
+            {
+                UploaderId = TestUploaderId,
+                UploadedAt = DateTimeOffset.UtcNow,
+                VideoPath = videoPath,
+                Visibility = RecordVisibility.Private,
+            };
+            RecordsController controller = CreateController(new FakeRecordRepository([record]));
+
+            IActionResult result = await controller.GetVideo(record.Id, CancellationToken.None);
+
+            PhysicalFileResult fileResult = Assert.IsType<PhysicalFileResult>(result);
+            Assert.Equal(videoPath, fileResult.FileName);
+            Assert.True(fileResult.EnableRangeProcessing);
+        }
+        finally
+        {
+            File.Delete(videoPath);
+        }
+    }
+
+    [Theory]
+    [InlineData(RecordVisibility.Public)]
+    [InlineData(RecordVisibility.Shareable)]
+    public async Task GetVideo_PublicOrShareableRecord_NotOwner_ReturnsPhysicalFile(RecordVisibility visibility)
+    {
+        string videoPath = CreateTempVideoFile();
+        try
+        {
+            Record record = new Record
+            {
+                UploaderId = Guid.CreateVersion7(),
+                UploadedAt = DateTimeOffset.UtcNow,
+                VideoPath = videoPath,
+                Visibility = visibility,
+            };
+            RecordsController controller = CreateController(new FakeRecordRepository([record]));
+
+            IActionResult result = await controller.GetVideo(record.Id, CancellationToken.None);
+
+            Assert.IsType<PhysicalFileResult>(result);
+        }
+        finally
+        {
+            File.Delete(videoPath);
+        }
+    }
+
+    [Fact]
+    public async Task GetVideo_MissingPhysicalFile_ReturnsNotFound()
+    {
+        Record record = new Record
+        {
+            UploaderId = Guid.CreateVersion7(),
+            UploadedAt = DateTimeOffset.UtcNow,
+            VideoPath = Path.Combine(Path.GetTempPath(), $"{Guid.CreateVersion7()}.mp4"),
+            Visibility = RecordVisibility.Public,
+        };
+        RecordsController controller = CreateController(new FakeRecordRepository([record]));
+
+        IActionResult result = await controller.GetVideo(record.Id, CancellationToken.None);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    private static string CreateTempVideoFile()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"{Guid.CreateVersion7()}.mp4");
+        File.WriteAllBytes(path, "fake video content"u8.ToArray());
+        return path;
     }
 }

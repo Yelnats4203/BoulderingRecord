@@ -29,6 +29,7 @@ public class BoulderingRecordDbContext(DbContextOptions options)
             entity.Property(r => r.UploadedAt).IsRequired();
             entity.Property(r => r.VideoPath).IsRequired();
             entity.Property(r => r.Note).HasMaxLength(1000);
+            entity.Property(r => r.Visibility).HasConversion<string>().HasMaxLength(20).IsRequired();
             entity.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(r => r.UploaderId)

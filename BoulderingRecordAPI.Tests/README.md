@@ -37,6 +37,11 @@ dotnet test
 | `GetAll_ReturnsAllRecords` | 查詢所有紀錄時，回應 200 並回傳全部紀錄清單。 |
 | `GetById_ExistingId_ReturnsRecord` | 以存在的 ID 查詢單筆紀錄時，回應 200 並回傳對應紀錄。 |
 | `GetById_UnknownId_ReturnsNotFound` | 以不存在的 ID 查詢單筆紀錄時，回應 404。 |
+| `GetVideo_UnknownId_ReturnsNotFound` | 以不存在的 ID 讀取影片時，回應 404。 |
+| `GetVideo_PrivateRecord_NotOwner_ReturnsNotFound` | 紀錄可見度為「不公開」且非上傳者本人讀取時，回應 404。 |
+| `GetVideo_PrivateRecord_Owner_ReturnsPhysicalFile` | 紀錄可見度為「不公開」但由上傳者本人讀取時，回傳影片檔案，並開啟 Range 處理以支援串流播放。 |
+| `GetVideo_PublicOrShareableRecord_NotOwner_ReturnsPhysicalFile` | 紀錄可見度為「公開」或「可被分享」時，非上傳者本人也能讀取影片檔案。 |
+| `GetVideo_MissingPhysicalFile_ReturnsNotFound` | 紀錄可見度允許讀取，但實體影片檔案已不存在時，回應 404。 |
 
 ### TokenAuthorizationFilter（`Filters/TokenAuthorizationFilterTests.cs`）
 

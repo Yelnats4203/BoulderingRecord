@@ -5,6 +5,7 @@ using BoulderingRecordAPI.Models.Records;
 using BoulderingRecordAPI.Repositories;
 using BoulderingRecordAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace BoulderingRecordAPI.Controllers;
 
@@ -14,6 +15,8 @@ public class RecordsController(
     IRecordRepository recordRepository,
     IVideoStorageService videoStorageService) : ControllerBase
 {
+    private static readonly FileExtensionContentTypeProvider ContentTypeProvider = new();
+
     [TokenAuthorize]
     [HttpPost]
     public async Task<IActionResult> Upload([FromForm] UploadRecordRequest request, CancellationToken cancellationToken)
@@ -58,6 +61,35 @@ public class RecordsController(
         }
 
         return Ok(RecordResponse.FromEntity(record));
+    }
+
+    [TokenAuthorize]
+    [HttpGet("{id:guid}/video")]
+    public async Task<IActionResult> GetVideo(Guid id, CancellationToken cancellationToken)
+    {
+        Record? record = await recordRepository.GetByIdAsync(id, cancellationToken);
+        if (record is null)
+        {
+            return NotFound();
+        }
+
+        Guid? currentUserId = GetUploaderId();
+        bool isOwner = currentUserId is not null && record.UploaderId == currentUserId.Value;
+        if (record.Visibility == RecordVisibility.Private && !isOwner)
+        {
+            return NotFound();
+        }
+
+        if (!System.IO.File.Exists(record.VideoPath))
+        {
+            return NotFound();
+        }
+
+        string contentType = ContentTypeProvider.TryGetContentType(record.VideoPath, out string? resolvedContentType)
+            ? resolvedContentType
+            : "application/octet-stream";
+
+        return PhysicalFile(record.VideoPath, contentType, enableRangeProcessing: true);
     }
 
     private Guid? GetUploaderId()

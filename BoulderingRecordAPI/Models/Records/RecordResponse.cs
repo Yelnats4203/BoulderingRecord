@@ -1,3 +1,5 @@
+using BoulderingRecordAPI.Entities;
+
 namespace BoulderingRecordAPI.Models.Records;
 
 public record RecordResponse(
@@ -6,7 +8,8 @@ public record RecordResponse(
     DateTimeOffset UploadedAt,
     int? Difficulty,
     Guid UploaderId,
-    string? Note)
+    string? Note,
+    RecordVisibility Visibility)
 {
     public static RecordResponse FromEntity(Entities.Record record) => new(
         record.Id,
@@ -14,5 +17,6 @@ public record RecordResponse(
         record.UploadedAt,
         record.Difficulty,
         record.UploaderId,
-        record.Note);
+        record.Note,
+        record.Visibility);
 }
