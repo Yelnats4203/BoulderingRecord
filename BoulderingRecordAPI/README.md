@@ -56,7 +56,7 @@ Options/         # 可設定選項（JwtSettings、VideoStorageOptions）
 | GET | `/api/records` | 不需 | 取得所有攀岩紀錄清單。 |
 | GET | `/api/records/{id}` | 不需 | 依 ID 取得單筆攀岩紀錄，不存在則回傳 404。 |
 
-影片實際存放邏輯由 `IVideoStorageService` 抽象化，目前實作 `LocalVideoStorageService` 會將檔案存到設定值 `VideoStorage:Directory`（預設 `App_Data/videos`）。
+影片實際存放邏輯由 `IVideoStorageService` 抽象化，目前實作 `LocalVideoStorageService` 會將檔案存到設定值 `VideoStorage:Directory`（預設 `userUpload`）下依 `userId` 分開的子資料夾，即 `{VideoStorage:Directory}/{userId}/{recordId}{副檔名}`。
 
 ## 常用指令
 

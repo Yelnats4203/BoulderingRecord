@@ -33,7 +33,7 @@ public class RecordsController(
             UploadedAt = DateTimeOffset.UtcNow,
         };
 
-        record.VideoPath = await videoStorageService.SaveAsync(request.Video, record.Id, cancellationToken);
+        record.VideoPath = await videoStorageService.SaveAsync(request.Video, uploaderId.Value, record.Id, cancellationToken);
 
         await recordRepository.AddAsync(record, cancellationToken);
         await recordRepository.SaveChangesAsync(cancellationToken);

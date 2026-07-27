@@ -4,3 +4,6 @@
 [2026-07-27 16:21:33] git commit
 [2026-07-27 16:27:26] 請在API的readme更新目前的專案架構與API
 [2026-07-27 16:29:10] git commit
+[2026-07-27 16:31:40] 修改API影片上傳的實體路徑，放在API專案資料夾/userUpload/{userId}
+[2026-07-27 16:37:38] git commit
+[2026-07-27 16:38:13] 繼續改完 FakeVideoStorageService，改完就 commit
