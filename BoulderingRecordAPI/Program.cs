@@ -19,6 +19,14 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.Configure<VideoStorageOptions>(builder.Configuration.GetSection(VideoStorageOptions.SectionName));
 builder.Services.AddScoped<IVideoStorageService, LocalVideoStorageService>();
 
+const string FrontendCorsPolicy = "FrontendCorsPolicy";
+string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCorsPolicy, policy =>
+        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod());
+});
+
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -28,6 +36,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(FrontendCorsPolicy);
 
 app.UseAuthorization();
 

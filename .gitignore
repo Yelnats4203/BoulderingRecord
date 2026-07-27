@@ -37,3 +37,9 @@ x86/
 ## OS files
 .DS_Store
 Thumbs.db
+
+## Node / Vite (frontend/)
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
