@@ -25,6 +25,8 @@ public class RecordsController(
     /// </summary>
     [TokenAuthorize]
     [HttpPost]
+    [ProducesResponseType(typeof(RecordResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Upload([FromForm] UploadRecordRequest request, CancellationToken cancellationToken)
     {
         Guid? uploaderId = GetUploaderId();
@@ -54,6 +56,7 @@ public class RecordsController(
     /// 取得所有攀岩紀錄清單。
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<RecordResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         List<Record> records = await recordRepository.GetAllAsync(cancellationToken);
@@ -64,6 +67,8 @@ public class RecordsController(
     /// 依 ID 取得單筆攀岩紀錄，不存在則回傳 404。
     /// </summary>
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(RecordResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         Record? record = await recordRepository.GetByIdAsync(id, cancellationToken);
@@ -80,6 +85,8 @@ public class RecordsController(
     /// </summary>
     [TokenAuthorize]
     [HttpGet("{id:guid}/video")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetVideo(Guid id, CancellationToken cancellationToken)
     {
         Record? record = await recordRepository.GetByIdAsync(id, cancellationToken);

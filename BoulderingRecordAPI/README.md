@@ -68,9 +68,14 @@ dotnet build
 dotnet run --project BoulderingRecordAPI
 ```
 
+## API 文件（Swagger UI）
+
+- OpenAPI 文件由內建的 `Microsoft.AspNetCore.OpenApi`（`AddOpenApi()` / `MapOpenApi()`）產生，僅在 Development 環境啟用，路徑為 `/openapi/v1.json`。
+- 搭配 `Swashbuckle.AspNetCore.SwaggerUI` 提供互動式網頁介面，指向上述 OpenAPI JSON，路徑為 `/swagger/index.html`（僅 Development 環境可用）。
+
 測試專案為 `BoulderingRecordAPI.Tests`（xUnit），所有 API 測試案例的敘述維護於該專案的 README，詳見 [`BoulderingRecordAPI.Tests/README.md`](../BoulderingRecordAPI.Tests/README.md)。
 
 ## 程式碼慣例
 
 - **不使用 `var`**：區域變數一律宣告明確型別，禁止使用 `var`（包含 `out var`、tuple 解構等寫法），以利閱讀時清楚掌握型別資訊。
-- **Entity 與 API 端點須加上 summary 註解**：`Entities/` 下的實體類別（含其屬性）與各 Controller 的 API 端點方法，一律以 `/// <summary>` XML 文件註解說明其用途，以利閱讀與產生 API 文件。
+- **Entity、Request／Response 與 API 端點須加上 summary 註解**：`Entities/` 下的實體類別（含其屬性）、`Models/` 下的 Request／Response DTO（含其參數／屬性），以及各 Controller 的 API 端點方法，一律以 `/// <summary>` XML 文件註解說明其用途，以利閱讀與產生 API 文件。

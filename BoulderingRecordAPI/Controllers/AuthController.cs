@@ -24,6 +24,8 @@ public class AuthController(
     /// 以帳號密碼登入，成功後回傳 JWT token 與到期時間，並將其設為該帳號的 active token。
     /// </summary>
     [HttpPost("login")]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken)
     {
         User? user = await userRepository.GetByAccAsync(request.Acc, cancellationToken);
@@ -49,6 +51,8 @@ public class AuthController(
     /// </summary>
     [TokenAuthorize]
     [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public IActionResult Logout()
     {
         string? acc = User.FindFirst(TokenClaimTypes.Acc)?.Value;
@@ -66,6 +70,8 @@ public class AuthController(
     /// </summary>
     [TokenAuthorize]
     [HttpPost("refresh")]
+    [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
     {
         string? acc = User.FindFirst(TokenClaimTypes.Acc)?.Value;
