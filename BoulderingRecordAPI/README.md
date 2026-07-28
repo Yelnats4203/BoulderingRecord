@@ -40,21 +40,21 @@ Options/         # 可設定選項（JwtSettings、VideoStorageOptions）
 
 ## API 端點
 
-### AuthController（`/api/auth`）
+### AuthController（`/auth`）
 
 | Method | 路徑 | 驗證 | 說明 |
 | --- | --- | --- | --- |
-| POST | `/api/auth/login` | 不需 | 以帳號密碼登入，回傳 JWT token 與到期時間，並存入 active token 快取。 |
-| POST | `/api/auth/logout` | 需要 | 登出，將該帳號的 active token 從快取移除。 |
-| POST | `/api/auth/refresh` | 需要 | 換發新 token，取代快取中原有的 active token。 |
+| POST | `/auth/login` | 不需 | 以帳號密碼登入，回傳 JWT token 與到期時間，並存入 active token 快取。 |
+| POST | `/auth/logout` | 需要 | 登出，將該帳號的 active token 從快取移除。 |
+| POST | `/auth/refresh` | 需要 | 換發新 token，取代快取中原有的 active token。 |
 
-### RecordsController（`/api/records`）
+### RecordsController（`/records`）
 
 | Method | 路徑 | 驗證 | 說明 |
 | --- | --- | --- | --- |
-| POST | `/api/records` | 需要 | 上傳攀岩紀錄影片（`multipart/form-data`：影片檔、岩館名稱、難度、備註），影片存放於本機儲存，上傳者與上傳時間由後端指派。 |
-| GET | `/api/records` | 不需 | 取得所有攀岩紀錄清單。 |
-| GET | `/api/records/{id}` | 不需 | 依 ID 取得單筆攀岩紀錄，不存在則回傳 404。 |
+| POST | `/records` | 需要 | 上傳攀岩紀錄影片（`multipart/form-data`：影片檔、岩館名稱、難度、備註），影片存放於本機儲存，上傳者與上傳時間由後端指派。 |
+| GET | `/records` | 不需 | 取得所有攀岩紀錄清單。 |
+| GET | `/records/{id}` | 不需 | 依 ID 取得單筆攀岩紀錄，不存在則回傳 404。 |
 
 影片實際存放邏輯由 `IVideoStorageService` 抽象化，目前實作 `LocalVideoStorageService` 會將檔案存到設定值 `VideoStorage:Directory`（預設 `userUpload`）下依 `userId` 分開的子資料夾，即 `{VideoStorage:Directory}/{userId}/{recordId}{副檔名}`。
 

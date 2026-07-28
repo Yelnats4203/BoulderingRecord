@@ -13,7 +13,7 @@ namespace BoulderingRecordAPI.Controllers;
 /// 處理攀岩紀錄的上傳與查詢等端點。
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class RecordsController(
     IRecordRepository recordRepository,
     IVideoStorageService videoStorageService) : ControllerBase

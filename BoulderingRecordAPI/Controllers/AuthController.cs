@@ -12,7 +12,7 @@ namespace BoulderingRecordAPI.Controllers;
 /// 處理登入、登出與 token 換發等身分驗證相關端點。
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class AuthController(
     IUserRepository userRepository,
     ITokenService tokenService,

@@ -2,7 +2,7 @@ import apiClient from './client'
 import type { RecordResponse, UploadRecordForm } from '../types/records'
 
 export function getAllRecords(): Promise<RecordResponse[]> {
-  return apiClient.get<RecordResponse[]>('/api/records').then((response) => response.data)
+  return apiClient.get<RecordResponse[]>('/records').then((response) => response.data)
 }
 
 export function uploadRecord(form: UploadRecordForm): Promise<RecordResponse> {
@@ -18,5 +18,5 @@ export function uploadRecord(form: UploadRecordForm): Promise<RecordResponse> {
     formData.append('Note', form.note)
   }
 
-  return apiClient.post<RecordResponse>('/api/records', formData).then((response) => response.data)
+  return apiClient.post<RecordResponse>('/records', formData).then((response) => response.data)
 }
