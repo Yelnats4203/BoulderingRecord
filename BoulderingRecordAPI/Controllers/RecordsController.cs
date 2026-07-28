@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.StaticFiles;
 
 namespace BoulderingRecordAPI.Controllers;
 
+/// <summary>
+/// 處理攀岩紀錄的上傳與查詢等端點。
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class RecordsController(
@@ -17,6 +20,9 @@ public class RecordsController(
 {
     private static readonly FileExtensionContentTypeProvider ContentTypeProvider = new();
 
+    /// <summary>
+    /// 上傳攀岩紀錄影片與相關資訊，上傳者與上傳時間由後端指派。
+    /// </summary>
     [TokenAuthorize]
     [HttpPost]
     public async Task<IActionResult> Upload([FromForm] UploadRecordRequest request, CancellationToken cancellationToken)
@@ -44,6 +50,9 @@ public class RecordsController(
         return CreatedAtAction(nameof(GetById), new { id = record.Id }, RecordResponse.FromEntity(record));
     }
 
+    /// <summary>
+    /// 取得所有攀岩紀錄清單。
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
@@ -51,6 +60,9 @@ public class RecordsController(
         return Ok(records.Select(RecordResponse.FromEntity));
     }
 
+    /// <summary>
+    /// 依 ID 取得單筆攀岩紀錄，不存在則回傳 404。
+    /// </summary>
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
@@ -63,6 +75,9 @@ public class RecordsController(
         return Ok(RecordResponse.FromEntity(record));
     }
 
+    /// <summary>
+    /// 依 ID 讀取紀錄的影片串流；私人紀錄僅上傳者本人可存取。
+    /// </summary>
     [TokenAuthorize]
     [HttpGet("{id:guid}/video")]
     public async Task<IActionResult> GetVideo(Guid id, CancellationToken cancellationToken)

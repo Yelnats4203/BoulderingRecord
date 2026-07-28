@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BoulderingRecordAPI.Controllers;
 
+/// <summary>
+/// 處理登入、登出與 token 換發等身分驗證相關端點。
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController(
@@ -17,6 +20,9 @@ public class AuthController(
 {
     private static readonly PasswordHasher<User> PasswordHasher = new();
 
+    /// <summary>
+    /// 以帳號密碼登入，成功後回傳 JWT token 與到期時間，並將其設為該帳號的 active token。
+    /// </summary>
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken)
     {
@@ -38,6 +44,9 @@ public class AuthController(
         return Ok(new LoginResponse(token, expiresAt));
     }
 
+    /// <summary>
+    /// 登出，將目前帳號的 active token 從快取中移除。
+    /// </summary>
     [TokenAuthorize]
     [HttpPost("logout")]
     public IActionResult Logout()
@@ -52,6 +61,9 @@ public class AuthController(
         return NoContent();
     }
 
+    /// <summary>
+    /// 換發新 token，並取代快取中原有的 active token。
+    /// </summary>
     [TokenAuthorize]
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(CancellationToken cancellationToken)

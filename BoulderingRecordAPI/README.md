@@ -73,3 +73,4 @@ dotnet run --project BoulderingRecordAPI
 ## 程式碼慣例
 
 - **不使用 `var`**：區域變數一律宣告明確型別，禁止使用 `var`（包含 `out var`、tuple 解構等寫法），以利閱讀時清楚掌握型別資訊。
+- **Entity 與 API 端點須加上 summary 註解**：`Entities/` 下的實體類別（含其屬性）與各 Controller 的 API 端點方法，一律以 `/// <summary>` XML 文件註解說明其用途，以利閱讀與產生 API 文件。
