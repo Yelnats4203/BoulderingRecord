@@ -5,14 +5,14 @@
 ## 專案架構
 
 ```
-Controllers/    # API 進入點（AuthController、SendsController）
+Controllers/    # API 進入點（AuthController、SendsController、SessionsController）
 Filters/        # TokenAuthorizeAttribute / TokenAuthorizationFilter：自訂 token 驗證
 Services/       # 商業邏輯服務（TokenService、LocalVideoStorageService、MemoryActiveTokenStore）
-Repositories/   # 資料存取介面與實作（IUserRepository、ISendRepository）
-Entities/       # 資料庫實體（User、Send）
+Repositories/   # 資料存取介面與實作（IUserRepository、ISendRepository、ISessionRepository）
+Entities/       # 資料庫實體（User、Send、Session、SessionGradeRecord）
 Data/           # DbContext 與 provider（SQLite／SQL Server）切換設定
 Migrations/     # 依 provider 分開存放的 EF Core migration（Sqlite/、SqlServer/）
-Models/         # 各 API 的 Request／Response DTO（Auth/、Sends/）
+Models/         # 各 API 的 Request／Response DTO（Auth/、Sends/、Sessions/）
 Options/         # 可設定選項（JwtSettings、VideoStorageOptions）
 ```
 
@@ -57,6 +57,18 @@ Options/         # 可設定選項（JwtSettings、VideoStorageOptions）
 | GET | `/sends/{id}` | 不需 | 依 ID 取得單筆完攀紀錄，不存在則回傳 404。 |
 
 影片實際存放邏輯由 `IVideoStorageService` 抽象化，目前實作 `LocalVideoStorageService` 會將檔案存到設定值 `VideoStorage:Directory`（預設 `userUpload`）下依 `userId` 分開的子資料夾，即 `{VideoStorage:Directory}/{userId}/{sendId}{副檔名}`。
+
+### SessionsController（`/sessions`）
+
+| Method | 路徑 | 驗證 | 說明 |
+| --- | --- | --- | --- |
+| POST | `/sessions` | 需要 | 建立抱石活動紀錄（日期、岩館名稱、各 V-Scale 級數的完攀／未完攀次數），所屬使用者由後端指派。 |
+| GET | `/sessions` | 需要 | 取得目前登入使用者的所有活動紀錄清單。 |
+| GET | `/sessions/{id}` | 需要 | 依 ID 取得單筆活動紀錄，不存在或非本人擁有則回傳 404。 |
+| PUT | `/sessions/{id}` | 需要 | 更新活動紀錄的日期、岩館名稱與各級數統計，不存在或非本人擁有則回傳 404。 |
+| DELETE | `/sessions/{id}` | 需要 | 刪除活動紀錄，成功回傳 204，不存在或非本人擁有則回傳 404。 |
+
+Sessions 為個人活動統計紀錄，所有端點皆需登入，且僅能存取／操作自己的資料；各級數的完攀／未完攀次數統計以子紀錄（`SessionGradeRecord`）表示，難度採用 V-Scale（以整數儲存，例如 `3` 代表 V3）。
 
 ## 常用指令
 

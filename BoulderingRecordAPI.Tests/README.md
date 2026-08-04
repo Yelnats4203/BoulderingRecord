@@ -43,6 +43,21 @@ dotnet test
 | `GetVideo_PublicOrShareableSend_NotOwner_ReturnsPhysicalFile` | 紀錄可見度為「公開」或「可被分享」時，非上傳者本人也能讀取影片檔案。 |
 | `GetVideo_MissingPhysicalFile_ReturnsNotFound` | 紀錄可見度允許讀取，但實體影片檔案已不存在時，回應 404。 |
 
+### SessionsController（`Controllers/SessionsControllerTests.cs`）
+
+| 測試案例 | 說明 |
+| --- | --- |
+| `Create_Authenticated_ReturnsCreatedWithBackendAssignedUserId` | 已登入使用者建立活動紀錄時，回應 201，且岩館名稱、各級數完攀/未完攀次數正確帶入，並由後端指派所屬使用者 ID。 |
+| `Create_NotAuthenticated_ReturnsUnauthorized` | 未登入使用者嘗試建立活動紀錄時，回應 401。 |
+| `GetAll_ReturnsOnlyCurrentUserSessions` | 查詢活動紀錄清單時，僅回傳目前登入使用者自己的紀錄，不包含其他使用者的紀錄。 |
+| `GetById_Owner_ReturnsSession` | 本人查詢自己擁有的活動紀錄時，回應 200 並回傳對應紀錄。 |
+| `GetById_NotOwner_ReturnsNotFound` | 查詢非本人擁有的活動紀錄時，回應 404。 |
+| `GetById_UnknownId_ReturnsNotFound` | 以不存在的 ID 查詢活動紀錄時，回應 404。 |
+| `Update_Owner_UpdatesFieldsAndGradeCounts` | 本人更新自己擁有的活動紀錄時，日期、岩館名稱與各級數統計皆會被覆蓋為新值。 |
+| `Update_NotOwner_ReturnsNotFound` | 嘗試更新非本人擁有的活動紀錄時，回應 404。 |
+| `Delete_Owner_ReturnsNoContentAndRemoves` | 本人刪除自己擁有的活動紀錄時，回應 204，且該紀錄之後查無資料。 |
+| `Delete_NotOwner_ReturnsNotFound` | 嘗試刪除非本人擁有的活動紀錄時，回應 404。 |
+
 ### TokenAuthorizationFilter（`Filters/TokenAuthorizationFilterTests.cs`）
 
 | 測試案例 | 說明 |

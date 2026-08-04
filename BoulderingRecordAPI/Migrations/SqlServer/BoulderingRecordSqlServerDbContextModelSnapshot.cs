@@ -61,6 +61,29 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                     b.ToTable("Sends");
                 });
 
+            modelBuilder.Entity("BoulderingRecordAPI.Entities.Session", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("GymName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Sessions");
+                });
+
             modelBuilder.Entity("BoulderingRecordAPI.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -100,6 +123,45 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                         .HasForeignKey("UploaderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("BoulderingRecordAPI.Entities.Session", b =>
+                {
+                    b.HasOne("BoulderingRecordAPI.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsMany("BoulderingRecordAPI.Entities.SessionGradeRecord", "GradeRecords", b1 =>
+                        {
+                            b1.Property<Guid>("SessionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<int>("CompletedCount")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Grade")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("UncompletedCount")
+                                .HasColumnType("int");
+
+                            b1.HasKey("SessionId", "Id");
+
+                            b1.ToTable("SessionGradeRecords", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("SessionId");
+                        });
+
+                    b.Navigation("GradeRecords");
                 });
 #pragma warning restore 612, 618
         }

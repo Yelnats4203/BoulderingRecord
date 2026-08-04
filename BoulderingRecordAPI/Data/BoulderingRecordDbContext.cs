@@ -10,6 +10,8 @@ public class BoulderingRecordDbContext(DbContextOptions options)
 
     public DbSet<Send> Sends => Set<Send>();
 
+    public DbSet<Session> Sessions => Set<Session>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -34,6 +36,25 @@ public class BoulderingRecordDbContext(DbContextOptions options)
                 .WithMany()
                 .HasForeignKey(s => s.UploaderId)
                 .IsRequired();
+        });
+
+        modelBuilder.Entity<Session>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.Date).IsRequired();
+            entity.Property(s => s.GymName).HasMaxLength(200);
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .IsRequired();
+            entity.OwnsMany(s => s.GradeRecords, gradeRecord =>
+            {
+                gradeRecord.ToTable("SessionGradeRecords");
+                gradeRecord.WithOwner().HasForeignKey("SessionId");
+                gradeRecord.Property(g => g.Grade).IsRequired();
+                gradeRecord.Property(g => g.CompletedCount).IsRequired();
+                gradeRecord.Property(g => g.UncompletedCount).IsRequired();
+            });
         });
     }
 }
