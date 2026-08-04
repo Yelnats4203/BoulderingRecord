@@ -1,9 +1,9 @@
 namespace BoulderingRecordAPI.Entities;
 
 /// <summary>
-/// 攀岩紀錄實體。
+/// 完攀紀錄實體。
 /// </summary>
-public class Record
+public class Send
 {
     /// <summary>
     /// 紀錄唯一識別碼。
@@ -43,5 +43,5 @@ public class Record
     /// <summary>
     /// 紀錄的可見度設定。
     /// </summary>
-    public RecordVisibility Visibility { get; set; } = RecordVisibility.Private;
+    public SendVisibility Visibility { get; set; } = SendVisibility.Private;
 }

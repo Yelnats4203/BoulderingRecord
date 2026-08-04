@@ -15,7 +15,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddBoulderingRecordDatabase(builder.Configuration);
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IRecordRepository, RecordRepository>();
+builder.Services.AddScoped<ISendRepository, SendRepository>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.Configure<VideoStorageOptions>(builder.Configuration.GetSection(VideoStorageOptions.SectionName));

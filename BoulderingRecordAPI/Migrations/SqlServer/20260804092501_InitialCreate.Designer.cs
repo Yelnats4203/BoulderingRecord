@@ -3,82 +3,87 @@ using System;
 using BoulderingRecordAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace BoulderingRecordAPI.Migrations.Sqlite
+namespace BoulderingRecordAPI.Migrations.SqlServer
 {
-    [DbContext(typeof(BoulderingRecordSqliteDbContext))]
-    [Migration("20260727085921_AddRecordVisibility")]
-    partial class AddRecordVisibility
+    [DbContext(typeof(BoulderingRecordSqlServerDbContext))]
+    [Migration("20260804092501_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.10");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            modelBuilder.Entity("BoulderingRecordAPI.Entities.Record", b =>
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("BoulderingRecordAPI.Entities.Send", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("Difficulty")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("GymName")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTimeOffset>("UploadedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<Guid>("UploaderId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("VideoPath")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Visibility")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UploaderId");
 
-                    b.ToTable("Records");
+                    b.ToTable("Sends");
                 });
 
             modelBuilder.Entity("BoulderingRecordAPI.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Acc")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Psw")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -91,7 +96,7 @@ namespace BoulderingRecordAPI.Migrations.Sqlite
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("BoulderingRecordAPI.Entities.Record", b =>
+            modelBuilder.Entity("BoulderingRecordAPI.Entities.Send", b =>
                 {
                     b.HasOne("BoulderingRecordAPI.Entities.User", null)
                         .WithMany()

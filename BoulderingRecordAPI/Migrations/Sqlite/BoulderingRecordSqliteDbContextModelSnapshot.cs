@@ -17,7 +17,7 @@ namespace BoulderingRecordAPI.Migrations.Sqlite
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.10");
 
-            modelBuilder.Entity("BoulderingRecordAPI.Entities.Record", b =>
+            modelBuilder.Entity("BoulderingRecordAPI.Entities.Send", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -53,7 +53,7 @@ namespace BoulderingRecordAPI.Migrations.Sqlite
 
                     b.HasIndex("UploaderId");
 
-                    b.ToTable("Records");
+                    b.ToTable("Sends");
                 });
 
             modelBuilder.Entity("BoulderingRecordAPI.Entities.User", b =>
@@ -88,7 +88,7 @@ namespace BoulderingRecordAPI.Migrations.Sqlite
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("BoulderingRecordAPI.Entities.Record", b =>
+            modelBuilder.Entity("BoulderingRecordAPI.Entities.Send", b =>
                 {
                     b.HasOne("BoulderingRecordAPI.Entities.User", null)
                         .WithMany()

@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using BoulderingRecordAPI.Entities;
 using BoulderingRecordAPI.Filters;
-using BoulderingRecordAPI.Models.Records;
+using BoulderingRecordAPI.Models.Sends;
 using BoulderingRecordAPI.Repositories;
 using BoulderingRecordAPI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,24 +10,24 @@ using Microsoft.AspNetCore.StaticFiles;
 namespace BoulderingRecordAPI.Controllers;
 
 /// <summary>
-/// 處理攀岩紀錄的上傳與查詢等端點。
+/// 處理完攀紀錄的上傳與查詢等端點。
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-public class RecordsController(
-    IRecordRepository recordRepository,
+public class SendsController(
+    ISendRepository sendRepository,
     IVideoStorageService videoStorageService) : ControllerBase
 {
     private static readonly FileExtensionContentTypeProvider ContentTypeProvider = new();
 
     /// <summary>
-    /// 上傳攀岩紀錄影片與相關資訊，上傳者與上傳時間由後端指派。
+    /// 上傳完攀紀錄影片與相關資訊，上傳者與上傳時間由後端指派。
     /// </summary>
     [TokenAuthorize]
     [HttpPost]
-    [ProducesResponseType(typeof(RecordResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(SendResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Upload([FromForm] UploadRecordRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Upload([FromForm] UploadSendRequest request, CancellationToken cancellationToken)
     {
         Guid? uploaderId = GetUploaderId();
         if (uploaderId is null)
@@ -35,7 +35,7 @@ public class RecordsController(
             return Unauthorized();
         }
 
-        Record record = new Record
+        Send send = new Send
         {
             GymName = request.GymName,
             Difficulty = request.Difficulty,
@@ -44,40 +44,40 @@ public class RecordsController(
             UploadedAt = DateTimeOffset.UtcNow,
         };
 
-        record.VideoPath = await videoStorageService.SaveAsync(request.Video, uploaderId.Value, record.Id, cancellationToken);
+        send.VideoPath = await videoStorageService.SaveAsync(request.Video, uploaderId.Value, send.Id, cancellationToken);
 
-        await recordRepository.AddAsync(record, cancellationToken);
-        await recordRepository.SaveChangesAsync(cancellationToken);
+        await sendRepository.AddAsync(send, cancellationToken);
+        await sendRepository.SaveChangesAsync(cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = record.Id }, RecordResponse.FromEntity(record));
+        return CreatedAtAction(nameof(GetById), new { id = send.Id }, SendResponse.FromEntity(send));
     }
 
     /// <summary>
-    /// 取得所有攀岩紀錄清單。
+    /// 取得所有完攀紀錄清單。
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<RecordResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<SendResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
-        List<Record> records = await recordRepository.GetAllAsync(cancellationToken);
-        return Ok(records.Select(RecordResponse.FromEntity));
+        List<Send> sends = await sendRepository.GetAllAsync(cancellationToken);
+        return Ok(sends.Select(SendResponse.FromEntity));
     }
 
     /// <summary>
-    /// 依 ID 取得單筆攀岩紀錄，不存在則回傳 404。
+    /// 依 ID 取得單筆完攀紀錄，不存在則回傳 404。
     /// </summary>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(RecordResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(SendResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        Record? record = await recordRepository.GetByIdAsync(id, cancellationToken);
-        if (record is null)
+        Send? send = await sendRepository.GetByIdAsync(id, cancellationToken);
+        if (send is null)
         {
             return NotFound();
         }
 
-        return Ok(RecordResponse.FromEntity(record));
+        return Ok(SendResponse.FromEntity(send));
     }
 
     /// <summary>
@@ -89,29 +89,29 @@ public class RecordsController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetVideo(Guid id, CancellationToken cancellationToken)
     {
-        Record? record = await recordRepository.GetByIdAsync(id, cancellationToken);
-        if (record is null)
+        Send? send = await sendRepository.GetByIdAsync(id, cancellationToken);
+        if (send is null)
         {
             return NotFound();
         }
 
         Guid? currentUserId = GetUploaderId();
-        bool isOwner = currentUserId is not null && record.UploaderId == currentUserId.Value;
-        if (record.Visibility == RecordVisibility.Private && !isOwner)
+        bool isOwner = currentUserId is not null && send.UploaderId == currentUserId.Value;
+        if (send.Visibility == SendVisibility.Private && !isOwner)
         {
             return NotFound();
         }
 
-        if (!System.IO.File.Exists(record.VideoPath))
+        if (!System.IO.File.Exists(send.VideoPath))
         {
             return NotFound();
         }
 
-        string contentType = ContentTypeProvider.TryGetContentType(record.VideoPath, out string? resolvedContentType)
+        string contentType = ContentTypeProvider.TryGetContentType(send.VideoPath, out string? resolvedContentType)
             ? resolvedContentType
             : "application/octet-stream";
 
-        return PhysicalFile(record.VideoPath, contentType, enableRangeProcessing: true);
+        return PhysicalFile(send.VideoPath, contentType, enableRangeProcessing: true);
     }
 
     private Guid? GetUploaderId()

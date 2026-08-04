@@ -27,7 +27,7 @@ namespace BoulderingRecordAPI.Migrations.Sqlite
                 });
 
             migrationBuilder.CreateTable(
-                name: "Records",
+                name: "Sends",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -36,13 +36,14 @@ namespace BoulderingRecordAPI.Migrations.Sqlite
                     Difficulty = table.Column<int>(type: "INTEGER", nullable: true),
                     UploaderId = table.Column<Guid>(type: "TEXT", nullable: false),
                     VideoPath = table.Column<string>(type: "TEXT", nullable: false),
-                    Note = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true)
+                    Note = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
+                    Visibility = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Records", x => x.Id);
+                    table.PrimaryKey("PK_Sends", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Records_Users_UploaderId",
+                        name: "FK_Sends_Users_UploaderId",
                         column: x => x.UploaderId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -50,8 +51,8 @@ namespace BoulderingRecordAPI.Migrations.Sqlite
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Records_UploaderId",
-                table: "Records",
+                name: "IX_Sends_UploaderId",
+                table: "Sends",
                 column: "UploaderId");
 
             migrationBuilder.CreateIndex(
@@ -71,7 +72,7 @@ namespace BoulderingRecordAPI.Migrations.Sqlite
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Records");
+                name: "Sends");
 
             migrationBuilder.DropTable(
                 name: "Users");

@@ -8,7 +8,7 @@ public class BoulderingRecordDbContext(DbContextOptions options)
 {
     public DbSet<User> Users => Set<User>();
 
-    public DbSet<Record> Records => Set<Record>();
+    public DbSet<Send> Sends => Set<Send>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,17 +22,17 @@ public class BoulderingRecordDbContext(DbContextOptions options)
             entity.Property(u => u.Psw).IsRequired();
         });
 
-        modelBuilder.Entity<Record>(entity =>
+        modelBuilder.Entity<Send>(entity =>
         {
-            entity.HasKey(r => r.Id);
-            entity.Property(r => r.GymName).HasMaxLength(200);
-            entity.Property(r => r.UploadedAt).IsRequired();
-            entity.Property(r => r.VideoPath).IsRequired();
-            entity.Property(r => r.Note).HasMaxLength(1000);
-            entity.Property(r => r.Visibility).HasConversion<string>().HasMaxLength(20).IsRequired();
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.GymName).HasMaxLength(200);
+            entity.Property(s => s.UploadedAt).IsRequired();
+            entity.Property(s => s.VideoPath).IsRequired();
+            entity.Property(s => s.Note).HasMaxLength(1000);
+            entity.Property(s => s.Visibility).HasConversion<string>().HasMaxLength(20).IsRequired();
             entity.HasOne<User>()
                 .WithMany()
-                .HasForeignKey(r => r.UploaderId)
+                .HasForeignKey(s => s.UploaderId)
                 .IsRequired();
         });
     }

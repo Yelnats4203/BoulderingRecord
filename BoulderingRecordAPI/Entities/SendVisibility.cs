@@ -1,9 +1,9 @@
 namespace BoulderingRecordAPI.Entities;
 
 /// <summary>
-/// 攀岩紀錄的可見度。
+/// 完攀紀錄的可見度。
 /// </summary>
-public enum RecordVisibility
+public enum SendVisibility
 {
     /// <summary>
     /// 僅上傳者本人可見。

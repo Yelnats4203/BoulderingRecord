@@ -22,7 +22,7 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("BoulderingRecordAPI.Entities.Record", b =>
+            modelBuilder.Entity("BoulderingRecordAPI.Entities.Send", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -58,7 +58,7 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
 
                     b.HasIndex("UploaderId");
 
-                    b.ToTable("Records");
+                    b.ToTable("Sends");
                 });
 
             modelBuilder.Entity("BoulderingRecordAPI.Entities.User", b =>
@@ -93,7 +93,7 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("BoulderingRecordAPI.Entities.Record", b =>
+            modelBuilder.Entity("BoulderingRecordAPI.Entities.Send", b =>
                 {
                     b.HasOne("BoulderingRecordAPI.Entities.User", null)
                         .WithMany()

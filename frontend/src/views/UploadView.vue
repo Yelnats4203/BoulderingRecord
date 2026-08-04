@@ -2,16 +2,16 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { logout as logoutApi } from '../api/auth'
-import { getAllRecords, uploadRecord } from '../api/records'
+import { getAllSends, uploadSend } from '../api/sends'
 import { useAuthStore } from '../stores/auth'
-import type { RecordResponse } from '../types/records'
-import RecordList from '../components/RecordList.vue'
+import type { SendResponse } from '../types/sends'
+import SendList from '../components/SendList.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
 
-const records = ref<RecordResponse[]>([])
-const isLoadingRecords = ref<boolean>(false)
+const sends = ref<SendResponse[]>([])
+const isLoadingSends = ref<boolean>(false)
 const listErrorMessage = ref<string>('')
 
 const videoFile = ref<File | null>(null)
@@ -27,15 +27,15 @@ function handleFileChange(event: Event): void {
   videoFile.value = input.files && input.files.length > 0 ? input.files[0] : null
 }
 
-async function fetchRecords(): Promise<void> {
-  isLoadingRecords.value = true
+async function fetchSends(): Promise<void> {
+  isLoadingSends.value = true
   listErrorMessage.value = ''
   try {
-    records.value = await getAllRecords()
+    sends.value = await getAllSends()
   } catch {
     listErrorMessage.value = '讀取紀錄列表失敗，請稍後再試。'
   } finally {
-    isLoadingRecords.value = false
+    isLoadingSends.value = false
   }
 }
 
@@ -49,7 +49,7 @@ async function handleUpload(): Promise<void> {
   uploadSuccessMessage.value = ''
   isUploading.value = true
   try {
-    await uploadRecord({
+    await uploadSend({
       video: videoFile.value,
       gymName: gymName.value,
       difficulty: difficulty.value,
@@ -64,7 +64,7 @@ async function handleUpload(): Promise<void> {
     if (fileInput) {
       fileInput.value = ''
     }
-    await fetchRecords()
+    await fetchSends()
   } catch {
     uploadErrorMessage.value = '上傳失敗，請確認影片格式後再試一次。'
   } finally {
@@ -82,7 +82,7 @@ async function handleLogout(): Promise<void> {
 }
 
 onMounted(() => {
-  void fetchRecords()
+  void fetchSends()
 })
 </script>
 
@@ -124,11 +124,11 @@ onMounted(() => {
       </button>
     </form>
 
-    <section class="record-section">
+    <section class="send-section">
       <h2>所有使用者的紀錄</h2>
       <p v-if="listErrorMessage" class="error-text">{{ listErrorMessage }}</p>
-      <p v-else-if="isLoadingRecords" class="hint-text">載入中...</p>
-      <RecordList v-else :records="records" />
+      <p v-else-if="isLoadingSends" class="hint-text">載入中...</p>
+      <SendList v-else :sends="sends" />
     </section>
   </div>
 </template>
@@ -161,7 +161,7 @@ onMounted(() => {
   margin: 0 0 12px;
 }
 
-.record-section h2 {
+.send-section h2 {
   font-size: 1.1rem;
 }
 </style>

@@ -1,15 +1,15 @@
 using System.Security.Claims;
 using BoulderingRecordAPI.Controllers;
 using BoulderingRecordAPI.Entities;
-using BoulderingRecordAPI.Models.Records;
+using BoulderingRecordAPI.Models.Sends;
 using BoulderingRecordAPI.Tests.Fakes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Record = BoulderingRecordAPI.Entities.Record;
+using Send = BoulderingRecordAPI.Entities.Send;
 
 namespace BoulderingRecordAPI.Tests.Controllers;
 
-public class RecordsControllerTests
+public class SendsControllerTests
 {
     private static readonly Guid TestUploaderId = Guid.CreateVersion7();
 
@@ -20,12 +20,12 @@ public class RecordsControllerTests
         return new FormFile(stream, 0, stream.Length, "Video", fileName);
     }
 
-    private static RecordsController CreateController(
-        FakeRecordRepository? recordRepository = null,
+    private static SendsController CreateController(
+        FakeSendRepository? sendRepository = null,
         bool authenticated = true)
     {
-        RecordsController controller = new RecordsController(
-            recordRepository ?? new FakeRecordRepository(),
+        SendsController controller = new SendsController(
+            sendRepository ?? new FakeSendRepository(),
             new FakeVideoStorageService());
 
         DefaultHttpContext httpContext = new DefaultHttpContext();
@@ -42,14 +42,14 @@ public class RecordsControllerTests
     [Fact]
     public async Task Upload_AuthenticatedUser_ReturnsCreatedWithBackendAssignedFields()
     {
-        RecordsController controller = CreateController();
+        SendsController controller = CreateController();
 
         IActionResult result = await controller.Upload(
-            new UploadRecordRequest(CreateFakeVideo(), "測試岩館", 5, "備註"),
+            new UploadSendRequest(CreateFakeVideo(), "測試岩館", 5, "備註"),
             CancellationToken.None);
 
         CreatedAtActionResult created = Assert.IsType<CreatedAtActionResult>(result);
-        RecordResponse response = Assert.IsType<RecordResponse>(created.Value);
+        SendResponse response = Assert.IsType<SendResponse>(created.Value);
         Assert.Equal("測試岩館", response.GymName);
         Assert.Equal(5, response.Difficulty);
         Assert.Equal("備註", response.Note);
@@ -60,49 +60,49 @@ public class RecordsControllerTests
     [Fact]
     public async Task Upload_NoAuthenticatedUser_ReturnsUnauthorized()
     {
-        RecordsController controller = CreateController(authenticated: false);
+        SendsController controller = CreateController(authenticated: false);
 
         IActionResult result = await controller.Upload(
-            new UploadRecordRequest(CreateFakeVideo(), null, null, null),
+            new UploadSendRequest(CreateFakeVideo(), null, null, null),
             CancellationToken.None);
 
         Assert.IsType<UnauthorizedResult>(result);
     }
 
     [Fact]
-    public async Task GetAll_ReturnsAllRecords()
+    public async Task GetAll_ReturnsAllSends()
     {
-        Record[] seed = new[]
+        Send[] seed = new[]
         {
-            new Record { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPath = "a.mp4" },
-            new Record { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPath = "b.mp4" },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPath = "a.mp4" },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPath = "b.mp4" },
         };
-        RecordsController controller = CreateController(new FakeRecordRepository(seed));
+        SendsController controller = CreateController(new FakeSendRepository(seed));
 
         IActionResult result = await controller.GetAll(CancellationToken.None);
 
         OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
-        IEnumerable<RecordResponse> records = Assert.IsAssignableFrom<IEnumerable<RecordResponse>>(okResult.Value);
-        Assert.Equal(2, records.Count());
+        IEnumerable<SendResponse> sends = Assert.IsAssignableFrom<IEnumerable<SendResponse>>(okResult.Value);
+        Assert.Equal(2, sends.Count());
     }
 
     [Fact]
-    public async Task GetById_ExistingId_ReturnsRecord()
+    public async Task GetById_ExistingId_ReturnsSend()
     {
-        Record record = new Record { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPath = "a.mp4" };
-        RecordsController controller = CreateController(new FakeRecordRepository([record]));
+        Send send = new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPath = "a.mp4" };
+        SendsController controller = CreateController(new FakeSendRepository([send]));
 
-        IActionResult result = await controller.GetById(record.Id, CancellationToken.None);
+        IActionResult result = await controller.GetById(send.Id, CancellationToken.None);
 
         OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
-        RecordResponse response = Assert.IsType<RecordResponse>(okResult.Value);
-        Assert.Equal(record.Id, response.Id);
+        SendResponse response = Assert.IsType<SendResponse>(okResult.Value);
+        Assert.Equal(send.Id, response.Id);
     }
 
     [Fact]
     public async Task GetById_UnknownId_ReturnsNotFound()
     {
-        RecordsController controller = CreateController();
+        SendsController controller = CreateController();
 
         IActionResult result = await controller.GetById(Guid.CreateVersion7(), CancellationToken.None);
 
@@ -112,7 +112,7 @@ public class RecordsControllerTests
     [Fact]
     public async Task GetVideo_UnknownId_ReturnsNotFound()
     {
-        RecordsController controller = CreateController();
+        SendsController controller = CreateController();
 
         IActionResult result = await controller.GetVideo(Guid.CreateVersion7(), CancellationToken.None);
 
@@ -120,38 +120,38 @@ public class RecordsControllerTests
     }
 
     [Fact]
-    public async Task GetVideo_PrivateRecord_NotOwner_ReturnsNotFound()
+    public async Task GetVideo_PrivateSend_NotOwner_ReturnsNotFound()
     {
-        Record record = new Record
+        Send send = new Send
         {
             UploaderId = Guid.CreateVersion7(),
             UploadedAt = DateTimeOffset.UtcNow,
             VideoPath = "someone-else.mp4",
-            Visibility = RecordVisibility.Private,
+            Visibility = SendVisibility.Private,
         };
-        RecordsController controller = CreateController(new FakeRecordRepository([record]));
+        SendsController controller = CreateController(new FakeSendRepository([send]));
 
-        IActionResult result = await controller.GetVideo(record.Id, CancellationToken.None);
+        IActionResult result = await controller.GetVideo(send.Id, CancellationToken.None);
 
         Assert.IsType<NotFoundResult>(result);
     }
 
     [Fact]
-    public async Task GetVideo_PrivateRecord_Owner_ReturnsPhysicalFile()
+    public async Task GetVideo_PrivateSend_Owner_ReturnsPhysicalFile()
     {
         string videoPath = CreateTempVideoFile();
         try
         {
-            Record record = new Record
+            Send send = new Send
             {
                 UploaderId = TestUploaderId,
                 UploadedAt = DateTimeOffset.UtcNow,
                 VideoPath = videoPath,
-                Visibility = RecordVisibility.Private,
+                Visibility = SendVisibility.Private,
             };
-            RecordsController controller = CreateController(new FakeRecordRepository([record]));
+            SendsController controller = CreateController(new FakeSendRepository([send]));
 
-            IActionResult result = await controller.GetVideo(record.Id, CancellationToken.None);
+            IActionResult result = await controller.GetVideo(send.Id, CancellationToken.None);
 
             PhysicalFileResult fileResult = Assert.IsType<PhysicalFileResult>(result);
             Assert.Equal(videoPath, fileResult.FileName);
@@ -164,23 +164,23 @@ public class RecordsControllerTests
     }
 
     [Theory]
-    [InlineData(RecordVisibility.Public)]
-    [InlineData(RecordVisibility.Shareable)]
-    public async Task GetVideo_PublicOrShareableRecord_NotOwner_ReturnsPhysicalFile(RecordVisibility visibility)
+    [InlineData(SendVisibility.Public)]
+    [InlineData(SendVisibility.Shareable)]
+    public async Task GetVideo_PublicOrShareableSend_NotOwner_ReturnsPhysicalFile(SendVisibility visibility)
     {
         string videoPath = CreateTempVideoFile();
         try
         {
-            Record record = new Record
+            Send send = new Send
             {
                 UploaderId = Guid.CreateVersion7(),
                 UploadedAt = DateTimeOffset.UtcNow,
                 VideoPath = videoPath,
                 Visibility = visibility,
             };
-            RecordsController controller = CreateController(new FakeRecordRepository([record]));
+            SendsController controller = CreateController(new FakeSendRepository([send]));
 
-            IActionResult result = await controller.GetVideo(record.Id, CancellationToken.None);
+            IActionResult result = await controller.GetVideo(send.Id, CancellationToken.None);
 
             Assert.IsType<PhysicalFileResult>(result);
         }
@@ -193,16 +193,16 @@ public class RecordsControllerTests
     [Fact]
     public async Task GetVideo_MissingPhysicalFile_ReturnsNotFound()
     {
-        Record record = new Record
+        Send send = new Send
         {
             UploaderId = Guid.CreateVersion7(),
             UploadedAt = DateTimeOffset.UtcNow,
             VideoPath = Path.Combine(Path.GetTempPath(), $"{Guid.CreateVersion7()}.mp4"),
-            Visibility = RecordVisibility.Public,
+            Visibility = SendVisibility.Public,
         };
-        RecordsController controller = CreateController(new FakeRecordRepository([record]));
+        SendsController controller = CreateController(new FakeSendRepository([send]));
 
-        IActionResult result = await controller.GetVideo(record.Id, CancellationToken.None);
+        IActionResult result = await controller.GetVideo(send.Id, CancellationToken.None);
 
         Assert.IsType<NotFoundResult>(result);
     }
