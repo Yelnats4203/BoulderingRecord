@@ -30,3 +30,9 @@ BoulderingRecord 是一個攀岩紀錄管理系統，以 **.NET 10**（`net10.0`
 - 檢查設定檔（如 `appsettings.json`、`appsettings.Development.json`）、程式碼、測試專案中是否存在實際的 API Keys 或機密值。
 - 若發現有寫入實際的 API Keys，**版控前必須將其清空為空字串**（如 `""`），不得將實際金鑰提交進儲存庫。
 - 部署時的實際 API Keys 由使用者手動填入，不透過版控管理，因此送出前清空是安全且不影響部署流程的做法。
+
+## 本機測試機密存放位置
+
+- 方案根目錄的 `CloudinaryKeys.txt` 存放 Cloudinary 的 `API Key`、`API Secret` 等本機測試用機密，已列入 `.gitignore`，不會進版控。
+- 需要在本機測試環境（如 `appsettings.Development.json` 或執行期環境變數）填入 Cloudinary 憑證、但目前設定值為空時，先查找此檔案取得對應的值再填入，不要要求使用者重新提供。
+- 測試完成、送出版控前，仍須依上述「版控安全檢查」規範，確認 `appsettings.json` 等設定檔中的機密值已清空。

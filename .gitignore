@@ -38,6 +38,9 @@ x86/
 .DS_Store
 Thumbs.db
 
+## 本機測試用機密（不進版控，見 CLAUDE.md 版控安全檢查）
+CloudinaryKeys.txt
+
 ## Node / Vite (frontend/)
 frontend/node_modules/
 frontend/dist/

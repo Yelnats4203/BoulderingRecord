@@ -10,3 +10,6 @@
 [2026-08-05 16:46:01] 填好 ApiKey 和 ApiSecret ，幫我測試上傳
 [2026-08-05 16:56:47] 清空 appsettings.json 裡的 ApiKey 和 ApiSecret
 [2026-08-05 16:57:17] git commit
+[2026-08-05 16:58:09] git push
+[2026-08-05 17:02:27] 我在專案資料夾新增了CloudinaryKeys檔案，請幫我加入git ignore；另外在Claude.md中，新增若測試環境找不到keys，去該檔案尋找並填入
+[2026-08-05 17:03:21] commit 這兩個變更
