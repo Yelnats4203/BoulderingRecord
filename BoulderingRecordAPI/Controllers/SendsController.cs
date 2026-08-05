@@ -5,7 +5,6 @@ using BoulderingRecordAPI.Models.Sends;
 using BoulderingRecordAPI.Repositories;
 using BoulderingRecordAPI.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
 
 namespace BoulderingRecordAPI.Controllers;
 
@@ -18,16 +17,14 @@ public class SendsController(
     ISendRepository sendRepository,
     IVideoStorageService videoStorageService) : ControllerBase
 {
-    private static readonly FileExtensionContentTypeProvider ContentTypeProvider = new();
-
     /// <summary>
-    /// 上傳完攀紀錄影片與相關資訊，上傳者與上傳時間由後端指派。
+    /// 取得供前端直接上傳影片到 Cloudinary 的簽章授權，上傳完成後需以回傳的 <c>SendId</c> 呼叫 <see cref="Upload"/> 建立紀錄。
     /// </summary>
     [TokenAuthorize]
-    [HttpPost]
-    [ProducesResponseType(typeof(SendResponse), StatusCodes.Status201Created)]
+    [HttpPost("upload-authorization")]
+    [ProducesResponseType(typeof(UploadAuthorizationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Upload([FromForm] UploadSendRequest request, CancellationToken cancellationToken)
+    public IActionResult GetUploadAuthorization()
     {
         Guid? uploaderId = GetUploaderId();
         if (uploaderId is null)
@@ -35,16 +32,43 @@ public class SendsController(
             return Unauthorized();
         }
 
+        VideoUploadAuthorization authorization = videoStorageService.CreateUploadAuthorization(uploaderId.Value);
+        return Ok(UploadAuthorizationResponse.FromAuthorization(authorization));
+    }
+
+    /// <summary>
+    /// 建立完攀紀錄，須於影片已直接上傳至 Cloudinary 後呼叫；上傳者與上傳時間由後端指派。
+    /// </summary>
+    [TokenAuthorize]
+    [HttpPost]
+    [ProducesResponseType(typeof(SendResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Upload([FromBody] CreateSendRequest request, CancellationToken cancellationToken)
+    {
+        Guid? uploaderId = GetUploaderId();
+        if (uploaderId is null)
+        {
+            return Unauthorized();
+        }
+
+        string publicId = $"sends/{uploaderId.Value}/{request.SendId}";
+        bool resourceExists = await videoStorageService.ResourceExistsAsync(publicId, cancellationToken);
+        if (!resourceExists)
+        {
+            return BadRequest("找不到對應的已上傳影片。");
+        }
+
         Send send = new Send
         {
+            Id = request.SendId,
             GymName = request.GymName,
             Difficulty = request.Difficulty,
             Note = request.Note,
             UploaderId = uploaderId.Value,
             UploadedAt = DateTimeOffset.UtcNow,
+            VideoPublicId = publicId,
         };
-
-        send.VideoPath = await videoStorageService.SaveAsync(request.Video, uploaderId.Value, send.Id, cancellationToken);
 
         await sendRepository.AddAsync(send, cancellationToken);
         await sendRepository.SaveChangesAsync(cancellationToken);
@@ -81,11 +105,11 @@ public class SendsController(
     }
 
     /// <summary>
-    /// 依 ID 讀取紀錄的影片串流；私人紀錄僅上傳者本人可存取。
+    /// 依 ID 取得紀錄影片的時效性簽章網址並導向播放；私人紀錄僅上傳者本人可存取。
     /// </summary>
     [TokenAuthorize]
     [HttpGet("{id:guid}/video")]
-    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status302Found)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetVideo(Guid id, CancellationToken cancellationToken)
     {
@@ -102,16 +126,7 @@ public class SendsController(
             return NotFound();
         }
 
-        if (!System.IO.File.Exists(send.VideoPath))
-        {
-            return NotFound();
-        }
-
-        string contentType = ContentTypeProvider.TryGetContentType(send.VideoPath, out string? resolvedContentType)
-            ? resolvedContentType
-            : "application/octet-stream";
-
-        return PhysicalFile(send.VideoPath, contentType, enableRangeProcessing: true);
+        return Redirect(videoStorageService.GetSignedPlaybackUrl(send.VideoPublicId));
     }
 
     private Guid? GetUploaderId()

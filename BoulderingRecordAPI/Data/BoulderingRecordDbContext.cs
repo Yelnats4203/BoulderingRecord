@@ -29,7 +29,7 @@ public class BoulderingRecordDbContext(DbContextOptions options)
             entity.HasKey(s => s.Id);
             entity.Property(s => s.GymName).HasMaxLength(200);
             entity.Property(s => s.UploadedAt).IsRequired();
-            entity.Property(s => s.VideoPath).IsRequired();
+            entity.Property(s => s.VideoPublicId).IsRequired();
             entity.Property(s => s.Note).HasMaxLength(1000);
             entity.Property(s => s.Visibility).HasConversion<string>().HasMaxLength(20).IsRequired();
             entity.HasOne<User>()

@@ -1,3 +1,12 @@
 ﻿[2026-08-05 15:54:00] 請在claude.md中，新增說明
 [2026-08-05 15:55:48] 請在claude.md中，新增說明，每次版控時，必須檢查，若有測試需求在專案中寫入API Keys等狀況，版控前必須把該API Keys清除變成空字串；版控為公開Repo，部屬時我會手動修改API Keys
 [2026-08-05 15:56:29] git commit
+[2026-08-05 15:58:33] claude plugin install cloudinary@claude-plugins-official
+[2026-08-05 15:59:12] 新增cloudinary的skill
+[2026-08-05 15:59:40] 重新啟動 Claude Code
+[2026-08-05 16:03:37] 請檢查是否已安裝Cloudinary的plug in 或skill
+[2026-08-05 16:04:49] 關於抱石影片的上傳，我現在要改成上傳到cloudinary
+[2026-08-05 16:38:27] 我沒有找到 Token-based authentication
+[2026-08-05 16:46:01] 填好 ApiKey 和 ApiSecret ，幫我測試上傳
+[2026-08-05 16:56:47] 清空 appsettings.json 裡的 ApiKey 和 ApiSecret
+[2026-08-05 16:57:17] git commit

@@ -1,8 +1,6 @@
 using System.Text.Json.Serialization;
 using BoulderingRecordAPI.Data;
-using BoulderingRecordAPI.Options;
 using BoulderingRecordAPI.Repositories;
-using BoulderingRecordAPI.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -19,8 +17,7 @@ builder.Services.AddScoped<ISendRepository, SendRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
-builder.Services.Configure<VideoStorageOptions>(builder.Configuration.GetSection(VideoStorageOptions.SectionName));
-builder.Services.AddScoped<IVideoStorageService, LocalVideoStorageService>();
+builder.Services.AddCloudinaryVideoStorage(builder.Configuration);
 
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
 string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];

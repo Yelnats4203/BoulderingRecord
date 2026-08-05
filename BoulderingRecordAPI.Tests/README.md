@@ -32,16 +32,18 @@ dotnet test
 
 | 測試案例 | 說明 |
 | --- | --- |
-| `Upload_AuthenticatedUser_ReturnsCreatedWithBackendAssignedFields` | 已登入使用者上傳影片紀錄時，回應 201，且岩館名稱、難度、備註等欄位正確帶入，並由後端指派上傳者 ID 與上傳時間。 |
-| `Upload_NoAuthenticatedUser_ReturnsUnauthorized` | 未登入使用者嘗試上傳時，回應 401。 |
+| `UploadAuthorization_Authenticated_ReturnsAuthorizationForUser` | 已登入使用者請求上傳授權時，回應 200，並回傳含該使用者 ID 的 public ID 簽章授權資訊。 |
+| `UploadAuthorization_NotAuthenticated_ReturnsUnauthorized` | 未登入使用者請求上傳授權時，回應 401。 |
+| `Upload_AuthenticatedUser_ReturnsCreatedWithBackendAssignedFields` | 已登入使用者於影片直傳 Cloudinary 完成後建立紀錄時，回應 201，且岩館名稱、難度、備註等欄位正確帶入，並由後端指派上傳者 ID 與上傳時間。 |
+| `Upload_NoAuthenticatedUser_ReturnsUnauthorized` | 未登入使用者嘗試建立紀錄時，回應 401。 |
+| `Upload_ResourceNotUploaded_ReturnsBadRequest` | 對應的影片尚未實際上傳至 Cloudinary（`ResourceExistsAsync` 回傳 false）時，回應 400，避免偽造未上傳的紀錄。 |
 | `GetAll_ReturnsAllSends` | 查詢所有紀錄時，回應 200 並回傳全部紀錄清單。 |
 | `GetById_ExistingId_ReturnsSend` | 以存在的 ID 查詢單筆紀錄時，回應 200 並回傳對應紀錄。 |
 | `GetById_UnknownId_ReturnsNotFound` | 以不存在的 ID 查詢單筆紀錄時，回應 404。 |
 | `GetVideo_UnknownId_ReturnsNotFound` | 以不存在的 ID 讀取影片時，回應 404。 |
 | `GetVideo_PrivateSend_NotOwner_ReturnsNotFound` | 紀錄可見度為「不公開」且非上傳者本人讀取時，回應 404。 |
-| `GetVideo_PrivateSend_Owner_ReturnsPhysicalFile` | 紀錄可見度為「不公開」但由上傳者本人讀取時，回傳影片檔案，並開啟 Range 處理以支援串流播放。 |
-| `GetVideo_PublicOrShareableSend_NotOwner_ReturnsPhysicalFile` | 紀錄可見度為「公開」或「可被分享」時，非上傳者本人也能讀取影片檔案。 |
-| `GetVideo_MissingPhysicalFile_ReturnsNotFound` | 紀錄可見度允許讀取，但實體影片檔案已不存在時，回應 404。 |
+| `GetVideo_PrivateSend_Owner_ReturnsRedirectToSignedUrl` | 紀錄可見度為「不公開」但由上傳者本人讀取時，回應 302 並導向 Cloudinary 簽章播放網址。 |
+| `GetVideo_PublicOrShareableSend_NotOwner_ReturnsRedirectToSignedUrl` | 紀錄可見度為「公開」或「可被分享」時，非上傳者本人也能取得導向播放網址的 302 回應。 |
 
 ### SessionsController（`Controllers/SessionsControllerTests.cs`）
 

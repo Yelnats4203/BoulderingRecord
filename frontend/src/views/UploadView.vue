@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { logout as logoutApi } from '../api/auth'
-import { getAllSends, uploadSend } from '../api/sends'
+import { createSend, getAllSends, getUploadAuthorization, uploadVideoToCloudinary } from '../api/sends'
 import { useAuthStore } from '../stores/auth'
 import type { SendResponse } from '../types/sends'
 import SendList from '../components/SendList.vue'
@@ -49,8 +49,10 @@ async function handleUpload(): Promise<void> {
   uploadSuccessMessage.value = ''
   isUploading.value = true
   try {
-    await uploadSend({
-      video: videoFile.value,
+    const auth = await getUploadAuthorization()
+    await uploadVideoToCloudinary(videoFile.value, auth)
+    await createSend({
+      sendId: auth.sendId,
       gymName: gymName.value,
       difficulty: difficulty.value,
       note: note.value,

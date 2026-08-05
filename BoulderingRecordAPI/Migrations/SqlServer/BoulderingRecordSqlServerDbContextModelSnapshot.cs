@@ -45,7 +45,7 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                     b.Property<Guid>("UploaderId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("VideoPath")
+                    b.Property<string>("VideoPublicId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

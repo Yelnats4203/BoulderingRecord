@@ -10,8 +10,17 @@ export interface SendResponse {
   visibility: SendVisibility
 }
 
-export interface UploadSendForm {
-  video: File
+export interface UploadAuthorization {
+  sendId: string
+  publicId: string
+  cloudName: string
+  apiKey: string
+  timestamp: number
+  signature: string
+}
+
+export interface CreateSendPayload {
+  sendId: string
   gymName: string
   difficulty: string
   note: string

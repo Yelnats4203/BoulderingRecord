@@ -1,8 +1,10 @@
-using Microsoft.AspNetCore.Http;
-
 namespace BoulderingRecordAPI.Services;
 
 public interface IVideoStorageService
 {
-    Task<string> SaveAsync(IFormFile video, Guid userId, Guid sendId, CancellationToken cancellationToken = default);
+    VideoUploadAuthorization CreateUploadAuthorization(Guid userId);
+
+    Task<bool> ResourceExistsAsync(string publicId, CancellationToken cancellationToken = default);
+
+    string GetSignedPlaybackUrl(string publicId);
 }

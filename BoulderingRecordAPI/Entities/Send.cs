@@ -31,9 +31,9 @@ public class Send
     public Guid UploaderId { get; set; }
 
     /// <summary>
-    /// 影片檔案於儲存體中的實際路徑。
+    /// 影片於 Cloudinary 的 public ID。
     /// </summary>
-    public string VideoPath { get; set; } = string.Empty;
+    public string VideoPublicId { get; set; } = string.Empty;
 
     /// <summary>
     /// 備註。
