@@ -14,6 +14,7 @@ export function uploadVideoToCloudinary(video: File, auth: UploadAuthorization):
   const formData = new FormData()
   formData.append('file', video)
   formData.append('public_id', auth.publicId)
+  formData.append('folder', auth.folder)
   formData.append('timestamp', String(auth.timestamp))
   formData.append('api_key', auth.apiKey)
   formData.append('signature', auth.signature)

@@ -44,6 +44,7 @@ public class SendsControllerTests
         OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
         UploadAuthorizationResponse response = Assert.IsType<UploadAuthorizationResponse>(okResult.Value);
         Assert.Contains(TestUploaderId.ToString(), response.PublicId);
+        Assert.Contains(TestUploaderId.ToString(), response.Folder);
     }
 
     [Fact]

@@ -41,6 +41,11 @@ Thumbs.db
 ## 本機測試用機密（不進版控，見 CLAUDE.md 版控安全檢查）
 CloudinaryKeys.txt
 
+## 本機測試用 SQLite 資料庫
+*.db
+*.db-shm
+*.db-wal
+
 ## Node / Vite (frontend/)
 frontend/node_modules/
 frontend/dist/

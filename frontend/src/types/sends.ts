@@ -13,6 +13,7 @@ export interface SendResponse {
 export interface UploadAuthorization {
   sendId: string
   publicId: string
+  folder: string
   cloudName: string
   apiKey: string
   timestamp: number

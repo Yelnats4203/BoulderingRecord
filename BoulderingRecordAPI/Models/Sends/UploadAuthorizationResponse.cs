@@ -7,6 +7,7 @@ namespace BoulderingRecordAPI.Models.Sends;
 /// </summary>
 /// <param name="SendId">預先產生的完攀紀錄 ID，上傳完成後建立紀錄時需回傳。</param>
 /// <param name="PublicId">影片於 Cloudinary 的 public ID。</param>
+/// <param name="Folder">影片於 Cloudinary Console 中歸類的資料夾路徑。</param>
 /// <param name="CloudName">Cloudinary 雲端名稱。</param>
 /// <param name="ApiKey">Cloudinary API Key。</param>
 /// <param name="Timestamp">簽章時使用的 Unix 時間戳記。</param>
@@ -14,6 +15,7 @@ namespace BoulderingRecordAPI.Models.Sends;
 public record UploadAuthorizationResponse(
     Guid SendId,
     string PublicId,
+    string Folder,
     string CloudName,
     string ApiKey,
     long Timestamp,
@@ -25,6 +27,7 @@ public record UploadAuthorizationResponse(
     public static UploadAuthorizationResponse FromAuthorization(VideoUploadAuthorization authorization) => new(
         authorization.SendId,
         authorization.PublicId,
+        authorization.Folder,
         authorization.CloudName,
         authorization.ApiKey,
         authorization.Timestamp,

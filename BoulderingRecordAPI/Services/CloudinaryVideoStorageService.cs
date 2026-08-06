@@ -16,17 +16,19 @@ public class CloudinaryVideoStorageService(Cloudinary cloudinary, IOptions<Cloud
     {
         Guid sendId = Guid.CreateVersion7();
         string publicId = $"sends/{userId}/{sendId}";
+        string folder = $"Bouldering/{userId}";
         long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         Dictionary<string, object> parametersToSign = new Dictionary<string, object>
         {
+            ["folder"] = folder,
             ["public_id"] = publicId,
             ["timestamp"] = timestamp,
             ["type"] = AuthenticatedType,
         };
         string signature = cloudinary.Api.SignParameters(parametersToSign);
 
-        return new VideoUploadAuthorization(sendId, publicId, _options.CloudName, _options.ApiKey, timestamp, signature);
+        return new VideoUploadAuthorization(sendId, publicId, folder, _options.CloudName, _options.ApiKey, timestamp, signature);
     }
 
     public async Task<bool> ResourceExistsAsync(string publicId, CancellationToken cancellationToken = default)
