@@ -1,9 +1,23 @@
 import axios from 'axios'
 import apiClient from './client'
-import type { CreateSendPayload, SendResponse, UploadAuthorization } from '../types/sends'
+import type { CreateSendPayload, SendResponse, UploadAuthorization, VideoRecordFilter, VideoRecordResponse } from '../types/sends'
 
 export function getAllSends(): Promise<SendResponse[]> {
   return apiClient.get<SendResponse[]>('/sends').then((response) => response.data)
+}
+
+export function getMySends(filter: Partial<VideoRecordFilter>): Promise<VideoRecordResponse[]> {
+  return apiClient
+    .get<VideoRecordResponse[]>('/sends/mine', {
+      params: {
+        gymName: filter.gymName || undefined,
+        uploadedFrom: filter.uploadedFrom ? `${filter.uploadedFrom}T00:00:00` : undefined,
+        uploadedTo: filter.uploadedTo ? `${filter.uploadedTo}T23:59:59.999` : undefined,
+        minDifficulty: filter.minDifficulty || undefined,
+        maxDifficulty: filter.maxDifficulty || undefined,
+      },
+    })
+    .then((response) => response.data)
 }
 
 export function getUploadAuthorization(): Promise<UploadAuthorization> {

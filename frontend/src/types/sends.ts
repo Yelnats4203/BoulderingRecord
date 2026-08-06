@@ -26,3 +26,20 @@ export interface CreateSendPayload {
   difficulty: string
   note: string
 }
+
+export interface VideoRecordResponse {
+  id: string
+  gymName: string | null
+  uploadedAt: string
+  difficulty: number | null
+  note: string | null
+  thumbnailUrl: string
+}
+
+export interface VideoRecordFilter {
+  gymName: string
+  uploadedFrom: string
+  uploadedTo: string
+  minDifficulty: string
+  maxDifficulty: string
+}

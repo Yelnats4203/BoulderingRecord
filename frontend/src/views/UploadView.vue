@@ -1,14 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { logout as logoutApi } from '../api/auth'
 import { createSend, getAllSends, getUploadAuthorization, uploadVideoToCloudinary } from '../api/sends'
-import { useAuthStore } from '../stores/auth'
 import type { SendResponse } from '../types/sends'
 import SendList from '../components/SendList.vue'
-
-const authStore = useAuthStore()
-const router = useRouter()
 
 const sends = ref<SendResponse[]>([])
 const isLoadingSends = ref<boolean>(false)
@@ -74,15 +68,6 @@ async function handleUpload(): Promise<void> {
   }
 }
 
-async function handleLogout(): Promise<void> {
-  try {
-    await logoutApi()
-  } finally {
-    authStore.clearSession()
-    await router.push({ name: 'login' })
-  }
-}
-
 onMounted(() => {
   void fetchSends()
 })
@@ -90,11 +75,6 @@ onMounted(() => {
 
 <template>
   <div class="page upload-page">
-    <header class="page-header">
-      <h1>攀岩紀錄</h1>
-      <button class="btn-secondary" type="button" @click="handleLogout">登出</button>
-    </header>
-
     <form class="card upload-form" @submit.prevent="handleUpload">
       <h2>上傳影片</h2>
 
@@ -136,18 +116,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.page-header h1 {
-  font-size: 1.5rem;
-  margin: 0;
-}
-
 .upload-form {
   max-width: 480px;
   margin: 0 auto 24px;

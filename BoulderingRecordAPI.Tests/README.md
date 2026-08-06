@@ -40,6 +40,12 @@ dotnet test
 | `GetAll_ReturnsAllSends` | 查詢所有紀錄時，回應 200 並回傳全部紀錄清單。 |
 | `GetById_ExistingId_ReturnsSend` | 以存在的 ID 查詢單筆紀錄時，回應 200 並回傳對應紀錄。 |
 | `GetById_UnknownId_ReturnsNotFound` | 以不存在的 ID 查詢單筆紀錄時，回應 404。 |
+| `GetMine_NotAuthenticated_ReturnsUnauthorized` | 未登入使用者查詢自己的影片紀錄清單時，回應 401。 |
+| `GetMine_NoFilter_ReturnsOnlyOwnSends` | 未帶任何篩選條件查詢時，僅回傳目前登入使用者自己的紀錄，不含其他使用者的紀錄，且回應含 Cloudinary 簽章縮圖網址。 |
+| `GetMine_GymNameFilter_ReturnsPartialMatchOnly` | 以岩館名稱關鍵字篩選時，採部分比對（模糊搜尋），僅回傳名稱包含關鍵字的紀錄。 |
+| `GetMine_UploadedAtRangeFilter_ReturnsSendsWithinRange` | 以上傳時間區間篩選時，僅回傳落在區間內的紀錄。 |
+| `GetMine_DifficultyRangeFilter_ReturnsSendsWithinRange` | 以難度區間篩選時，僅回傳難度落在區間內的紀錄。 |
+| `GetMine_NoMatchingSends_ReturnsEmpty` | 篩選條件無符合紀錄時，回應 200 並回傳空陣列。 |
 | `GetVideo_UnknownId_ReturnsNotFound` | 以不存在的 ID 讀取影片時，回應 404。 |
 | `GetVideo_PrivateSend_NotOwner_ReturnsNotFound` | 紀錄可見度為「不公開」且非上傳者本人讀取時，回應 404。 |
 | `GetVideo_PrivateSend_Owner_ReturnsRedirectToSignedUrl` | 紀錄可見度為「不公開」但由上傳者本人讀取時，回應 302 並導向 Cloudinary 簽章播放網址。 |

@@ -52,7 +52,8 @@ public class SendsController(
             return Unauthorized();
         }
 
-        string publicId = $"sends/{uploaderId.Value}/{request.SendId}";
+        // Cloudinary 上傳時另帶有 folder 參數，實際儲存位置會是 folder 與 public_id 相接後的路徑。
+        string publicId = $"Bouldering/{uploaderId.Value}/sends/{uploaderId.Value}/{request.SendId}";
         bool resourceExists = await videoStorageService.ResourceExistsAsync(publicId, cancellationToken);
         if (!resourceExists)
         {
@@ -85,6 +86,32 @@ public class SendsController(
     {
         List<Send> sends = await sendRepository.GetAllAsync(cancellationToken);
         return Ok(sends.Select(SendResponse.FromEntity));
+    }
+
+    /// <summary>
+    /// 依岩館名稱、上傳時間區間、難度區間，取得目前登入使用者自己上傳的影片紀錄清單。
+    /// </summary>
+    [TokenAuthorize]
+    [HttpGet("mine")]
+    [ProducesResponseType(typeof(IEnumerable<VideoRecordResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetMine(
+        string? gymName,
+        DateTimeOffset? uploadedFrom,
+        DateTimeOffset? uploadedTo,
+        int? minDifficulty,
+        int? maxDifficulty,
+        CancellationToken cancellationToken)
+    {
+        Guid? uploaderId = GetUploaderId();
+        if (uploaderId is null)
+        {
+            return Unauthorized();
+        }
+
+        List<Send> sends = await sendRepository.GetByUploaderIdAsync(
+            uploaderId.Value, gymName, uploadedFrom, uploadedTo, minDifficulty, maxDifficulty, cancellationToken);
+        return Ok(sends.Select(s => VideoRecordResponse.FromEntity(s, videoStorageService)));
     }
 
     /// <summary>

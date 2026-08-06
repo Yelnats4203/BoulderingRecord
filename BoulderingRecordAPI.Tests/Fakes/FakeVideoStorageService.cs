@@ -16,4 +16,6 @@ public class FakeVideoStorageService(bool resourceExists = true) : IVideoStorage
         => Task.FromResult(resourceExists);
 
     public string GetSignedPlaybackUrl(string publicId) => $"https://fake-cdn.test/{publicId}?token=fake";
+
+    public string GetSignedThumbnailUrl(string publicId) => $"https://fake-cdn.test/{publicId}.jpg?token=fake";
 }

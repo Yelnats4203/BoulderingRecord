@@ -51,4 +51,14 @@ public class CloudinaryVideoStorageService(Cloudinary cloudinary, IOptions<Cloud
             .Signed(true)
             .BuildUrl(publicId);
     }
+
+    public string GetSignedThumbnailUrl(string publicId)
+    {
+        return cloudinary.Api.Url
+            .ResourceType("video")
+            .Type(AuthenticatedType)
+            .Signed(true)
+            .Format("jpg")
+            .BuildUrl(publicId);
+    }
 }

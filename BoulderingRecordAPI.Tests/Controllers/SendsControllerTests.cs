@@ -140,6 +140,107 @@ public class SendsControllerTests
     }
 
     [Fact]
+    public async Task GetMine_NotAuthenticated_ReturnsUnauthorized()
+    {
+        SendsController controller = CreateController(authenticated: false);
+
+        IActionResult result = await controller.GetMine(null, null, null, null, null, CancellationToken.None);
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task GetMine_NoFilter_ReturnsOnlyOwnSends()
+    {
+        Send[] seed = new[]
+        {
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a" },
+            new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "b" },
+        };
+        SendsController controller = CreateController(new FakeSendRepository(seed));
+
+        IActionResult result = await controller.GetMine(null, null, null, null, null, CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        IEnumerable<VideoRecordResponse> records = Assert.IsAssignableFrom<IEnumerable<VideoRecordResponse>>(okResult.Value);
+        VideoRecordResponse record = Assert.Single(records);
+        Assert.Equal(seed[0].Id, record.Id);
+        Assert.Equal("https://fake-cdn.test/a.jpg?token=fake", record.ThumbnailUrl);
+    }
+
+    [Fact]
+    public async Task GetMine_GymNameFilter_ReturnsPartialMatchOnly()
+    {
+        Send[] seed = new[]
+        {
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a", GymName = "True Rock 岩究所" },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "b", GymName = "彩岩攀岩館" },
+        };
+        SendsController controller = CreateController(new FakeSendRepository(seed));
+
+        IActionResult result = await controller.GetMine("岩究所", null, null, null, null, CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        IEnumerable<VideoRecordResponse> records = Assert.IsAssignableFrom<IEnumerable<VideoRecordResponse>>(okResult.Value);
+        VideoRecordResponse record = Assert.Single(records);
+        Assert.Equal(seed[0].Id, record.Id);
+    }
+
+    [Fact]
+    public async Task GetMine_UploadedAtRangeFilter_ReturnsSendsWithinRange()
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        Send[] seed = new[]
+        {
+            new Send { UploaderId = TestUploaderId, UploadedAt = now.AddDays(-10), VideoPublicId = "a" },
+            new Send { UploaderId = TestUploaderId, UploadedAt = now, VideoPublicId = "b" },
+        };
+        SendsController controller = CreateController(new FakeSendRepository(seed));
+
+        IActionResult result = await controller.GetMine(null, now.AddDays(-1), now.AddDays(1), null, null, CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        IEnumerable<VideoRecordResponse> records = Assert.IsAssignableFrom<IEnumerable<VideoRecordResponse>>(okResult.Value);
+        VideoRecordResponse record = Assert.Single(records);
+        Assert.Equal(seed[1].Id, record.Id);
+    }
+
+    [Fact]
+    public async Task GetMine_DifficultyRangeFilter_ReturnsSendsWithinRange()
+    {
+        Send[] seed = new[]
+        {
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a", Difficulty = 2 },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "b", Difficulty = 5 },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "c", Difficulty = 8 },
+        };
+        SendsController controller = CreateController(new FakeSendRepository(seed));
+
+        IActionResult result = await controller.GetMine(null, null, null, 4, 6, CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        IEnumerable<VideoRecordResponse> records = Assert.IsAssignableFrom<IEnumerable<VideoRecordResponse>>(okResult.Value);
+        VideoRecordResponse record = Assert.Single(records);
+        Assert.Equal(seed[1].Id, record.Id);
+    }
+
+    [Fact]
+    public async Task GetMine_NoMatchingSends_ReturnsEmpty()
+    {
+        Send[] seed = new[]
+        {
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a", GymName = "彩岩攀岩館" },
+        };
+        SendsController controller = CreateController(new FakeSendRepository(seed));
+
+        IActionResult result = await controller.GetMine("不存在的岩館", null, null, null, null, CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        IEnumerable<VideoRecordResponse> records = Assert.IsAssignableFrom<IEnumerable<VideoRecordResponse>>(okResult.Value);
+        Assert.Empty(records);
+    }
+
+    [Fact]
     public async Task GetVideo_UnknownId_ReturnsNotFound()
     {
         SendsController controller = CreateController();
