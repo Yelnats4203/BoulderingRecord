@@ -9,4 +9,6 @@ public interface IVideoStorageService
     string GetSignedPlaybackUrl(string publicId);
 
     string GetSignedThumbnailUrl(string publicId);
+
+    Task<bool> DeleteResourceAsync(string publicId, CancellationToken cancellationToken = default);
 }

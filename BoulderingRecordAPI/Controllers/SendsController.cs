@@ -115,6 +115,73 @@ public class SendsController(
     }
 
     /// <summary>
+    /// 編輯完攀紀錄的上傳時間、岩館、難度、備註；僅上傳者本人可編輯，上傳時間為必填。
+    /// </summary>
+    [TokenAuthorize]
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(SendResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateSendRequest request, CancellationToken cancellationToken)
+    {
+        Guid? uploaderId = GetUploaderId();
+        if (uploaderId is null)
+        {
+            return Unauthorized();
+        }
+
+        if (request.UploadedAt == default)
+        {
+            return BadRequest("上傳時間為必填。");
+        }
+
+        Send? send = await sendRepository.GetByIdAsync(id, cancellationToken);
+        if (send is null || send.UploaderId != uploaderId.Value)
+        {
+            return NotFound();
+        }
+
+        send.UploadedAt = request.UploadedAt;
+        send.GymName = request.GymName;
+        send.Difficulty = request.Difficulty;
+        send.Note = request.Note;
+
+        await sendRepository.SaveChangesAsync(cancellationToken);
+
+        return Ok(SendResponse.FromEntity(send));
+    }
+
+    /// <summary>
+    /// 刪除完攀紀錄，同時刪除 Cloudinary 上的影片資源；僅上傳者本人可刪除。
+    /// </summary>
+    [TokenAuthorize]
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        Guid? uploaderId = GetUploaderId();
+        if (uploaderId is null)
+        {
+            return Unauthorized();
+        }
+
+        Send? send = await sendRepository.GetByIdAsync(id, cancellationToken);
+        if (send is null || send.UploaderId != uploaderId.Value)
+        {
+            return NotFound();
+        }
+
+        await videoStorageService.DeleteResourceAsync(send.VideoPublicId, cancellationToken);
+        await sendRepository.DeleteAsync(send, cancellationToken);
+        await sendRepository.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
     /// 依 ID 取得單筆完攀紀錄，不存在則回傳 404。
     /// </summary>
     [HttpGet("{id:guid}")]

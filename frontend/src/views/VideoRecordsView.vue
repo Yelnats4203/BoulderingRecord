@@ -31,6 +31,19 @@ function handleCloseDetail(): void {
   selectedRecord.value = null
 }
 
+function handleUpdated(record: VideoRecordResponse): void {
+  const index = records.value.findIndex((r) => r.id === record.id)
+  if (index !== -1) {
+    records.value[index] = record
+  }
+  selectedRecord.value = record
+}
+
+function handleDeleted(id: string): void {
+  records.value = records.value.filter((r) => r.id !== id)
+  selectedRecord.value = null
+}
+
 onMounted(() => {
   void fetchRecords()
 })
@@ -46,7 +59,13 @@ onMounted(() => {
     <p v-else-if="isLoading" class="hint-text">載入中...</p>
     <VideoRecordList v-else :records="records" @select="handleSelect" />
 
-    <VideoRecordDetailModal v-if="selectedRecord" :record="selectedRecord" @close="handleCloseDetail" />
+    <VideoRecordDetailModal
+      v-if="selectedRecord"
+      :record="selectedRecord"
+      @close="handleCloseDetail"
+      @updated="handleUpdated"
+      @deleted="handleDeleted"
+    />
   </div>
 </template>
 

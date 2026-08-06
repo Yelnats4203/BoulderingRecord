@@ -43,3 +43,10 @@ export interface VideoRecordFilter {
   minDifficulty: string
   maxDifficulty: string
 }
+
+export interface UpdateSendPayload {
+  uploadedAt: string
+  gymName: string
+  difficulty: string
+  note: string
+}

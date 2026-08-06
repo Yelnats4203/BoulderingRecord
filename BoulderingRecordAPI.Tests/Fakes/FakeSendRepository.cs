@@ -58,5 +58,11 @@ public class FakeSendRepository(IEnumerable<Send>? seedSends = null) : ISendRepo
         return Task.CompletedTask;
     }
 
+    public Task DeleteAsync(Send send, CancellationToken cancellationToken = default)
+    {
+        _sends.RemoveAll(s => s.Id == send.Id);
+        return Task.CompletedTask;
+    }
+
     public Task SaveChangesAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 }

@@ -2,8 +2,11 @@ using BoulderingRecordAPI.Services;
 
 namespace BoulderingRecordAPI.Tests.Fakes;
 
-public class FakeVideoStorageService(bool resourceExists = true) : IVideoStorageService
+public class FakeVideoStorageService(bool resourceExists = true, bool deleteSucceeds = true) : IVideoStorageService
 {
+    public List<string> DeletedPublicIds { get; } = [];
+
+
     public VideoUploadAuthorization CreateUploadAuthorization(Guid userId)
     {
         Guid sendId = Guid.CreateVersion7();
@@ -18,4 +21,10 @@ public class FakeVideoStorageService(bool resourceExists = true) : IVideoStorage
     public string GetSignedPlaybackUrl(string publicId) => $"https://fake-cdn.test/{publicId}?token=fake";
 
     public string GetSignedThumbnailUrl(string publicId) => $"https://fake-cdn.test/{publicId}.jpg?token=fake";
+
+    public Task<bool> DeleteResourceAsync(string publicId, CancellationToken cancellationToken = default)
+    {
+        DeletedPublicIds.Add(publicId);
+        return Task.FromResult(deleteSucceeds);
+    }
 }

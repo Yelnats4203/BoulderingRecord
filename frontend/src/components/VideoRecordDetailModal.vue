@@ -1,16 +1,90 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import { deleteSend, updateSend } from '../api/sends'
 import type { VideoRecordResponse } from '../types/sends'
+import ConfirmDialog from './ConfirmDialog.vue'
 
-defineProps<{
+const props = defineProps<{
   record: VideoRecordResponse
 }>()
 
 const emit = defineEmits<{
   close: []
+  updated: [record: VideoRecordResponse]
+  deleted: [id: string]
 }>()
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleString()
+}
+
+function toDateTimeLocalValue(value: string): string {
+  const date = new Date(value)
+  const pad = (n: number): string => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+const isEditing = ref<boolean>(false)
+const isSaving = ref<boolean>(false)
+const errorMessage = ref<string>('')
+const uploadedAt = ref<string>(toDateTimeLocalValue(props.record.uploadedAt))
+const gymName = ref<string>(props.record.gymName ?? '')
+const difficulty = ref<string>(props.record.difficulty === null ? '' : String(props.record.difficulty))
+const note = ref<string>(props.record.note ?? '')
+
+function startEditing(): void {
+  uploadedAt.value = toDateTimeLocalValue(props.record.uploadedAt)
+  gymName.value = props.record.gymName ?? ''
+  difficulty.value = props.record.difficulty === null ? '' : String(props.record.difficulty)
+  note.value = props.record.note ?? ''
+  errorMessage.value = ''
+  isEditing.value = true
+}
+
+function cancelEditing(): void {
+  isEditing.value = false
+}
+
+async function handleSave(): Promise<void> {
+  errorMessage.value = ''
+  isSaving.value = true
+  try {
+    const updated = await updateSend(props.record.id, {
+      uploadedAt: new Date(uploadedAt.value).toISOString(),
+      gymName: gymName.value,
+      difficulty: difficulty.value,
+      note: note.value,
+    })
+    emit('updated', {
+      ...props.record,
+      gymName: updated.gymName,
+      uploadedAt: updated.uploadedAt,
+      difficulty: updated.difficulty,
+      note: updated.note,
+    })
+    isEditing.value = false
+  } catch {
+    errorMessage.value = '更新失敗，請稍後再試。'
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const isConfirmingDelete = ref<boolean>(false)
+const isDeleting = ref<boolean>(false)
+
+async function handleConfirmDelete(): Promise<void> {
+  isDeleting.value = true
+  try {
+    await deleteSend(props.record.id)
+    isConfirmingDelete.value = false
+    emit('deleted', props.record.id)
+  } catch {
+    errorMessage.value = '刪除失敗，請稍後再試。'
+    isConfirmingDelete.value = false
+  } finally {
+    isDeleting.value = false
+  }
 }
 </script>
 
@@ -24,11 +98,52 @@ function formatDate(value: string): string {
 
       <img class="video-thumbnail-large" :src="record.thumbnailUrl" alt="影片縮圖" />
 
-      <div class="video-row"><span class="video-label">岩館</span><span>{{ record.gymName ?? '-' }}</span></div>
-      <div class="video-row"><span class="video-label">難度</span><span>{{ record.difficulty ?? '-' }}</span></div>
-      <div class="video-row"><span class="video-label">上傳時間</span><span>{{ formatDate(record.uploadedAt) }}</span></div>
-      <div class="video-row"><span class="video-label">備註</span><span>{{ record.note ?? '-' }}</span></div>
+      <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
+
+      <form v-if="isEditing" class="edit-form" @submit.prevent="handleSave">
+        <div class="form-field">
+          <label for="edit-uploaded-at">上傳時間</label>
+          <input id="edit-uploaded-at" v-model="uploadedAt" type="datetime-local" required />
+        </div>
+        <div class="form-field">
+          <label for="edit-gym-name">岩館（選填）</label>
+          <input id="edit-gym-name" v-model="gymName" type="text" />
+        </div>
+        <div class="form-field">
+          <label for="edit-difficulty">難度（選填）</label>
+          <input id="edit-difficulty" v-model="difficulty" type="number" />
+        </div>
+        <div class="form-field">
+          <label for="edit-note">備註（選填）</label>
+          <textarea id="edit-note" v-model="note"></textarea>
+        </div>
+        <div class="edit-actions">
+          <button class="btn-secondary" type="button" :disabled="isSaving" @click="cancelEditing">取消</button>
+          <button class="btn-primary" type="submit" :disabled="isSaving">{{ isSaving ? '儲存中...' : '儲存' }}</button>
+        </div>
+      </form>
+
+      <template v-else>
+        <div class="video-row"><span class="video-label">岩館</span><span>{{ record.gymName ?? '-' }}</span></div>
+        <div class="video-row"><span class="video-label">難度</span><span>{{ record.difficulty ?? '-' }}</span></div>
+        <div class="video-row"><span class="video-label">上傳時間</span><span>{{ formatDate(record.uploadedAt) }}</span></div>
+        <div class="video-row"><span class="video-label">備註</span><span>{{ record.note ?? '-' }}</span></div>
+
+        <div class="detail-actions">
+          <button class="btn-secondary" type="button" @click="startEditing">編輯</button>
+          <button class="btn-danger" type="button" @click="isConfirmingDelete = true">刪除</button>
+        </div>
+      </template>
     </div>
+
+    <ConfirmDialog
+      v-if="isConfirmingDelete"
+      title="刪除影片紀錄"
+      message="刪除後將無法復原，且會一併刪除 Cloudinary 上的影片，確定要刪除嗎？"
+      :confirm-disabled="isDeleting"
+      @confirm="handleConfirmDelete"
+      @cancel="isConfirmingDelete = false"
+    />
   </div>
 </template>
 
@@ -88,5 +203,23 @@ function formatDate(value: string): string {
   font-weight: 600;
   color: var(--color-text-muted);
   flex-shrink: 0;
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.edit-form .form-field:last-of-type {
+  margin-bottom: 0;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
 }
 </style>

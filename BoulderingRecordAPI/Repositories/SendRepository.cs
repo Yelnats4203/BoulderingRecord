@@ -58,6 +58,12 @@ public class SendRepository(BoulderingRecordDbContext dbContext) : ISendReposito
     public async Task AddAsync(Send send, CancellationToken cancellationToken = default)
         => await dbContext.Sends.AddAsync(send, cancellationToken);
 
+    public Task DeleteAsync(Send send, CancellationToken cancellationToken = default)
+    {
+        dbContext.Sends.Remove(send);
+        return Task.CompletedTask;
+    }
+
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
         => dbContext.SaveChangesAsync(cancellationToken);
 }

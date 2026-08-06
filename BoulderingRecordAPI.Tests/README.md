@@ -46,6 +46,13 @@ dotnet test
 | `GetMine_UploadedAtRangeFilter_ReturnsSendsWithinRange` | 以上傳時間區間篩選時，僅回傳落在區間內的紀錄。 |
 | `GetMine_DifficultyRangeFilter_ReturnsSendsWithinRange` | 以難度區間篩選時，僅回傳難度落在區間內的紀錄。 |
 | `GetMine_NoMatchingSends_ReturnsEmpty` | 篩選條件無符合紀錄時，回應 200 並回傳空陣列。 |
+| `Update_Owner_UpdatesFields` | 本人編輯自己擁有的紀錄時，上傳時間、岩館、難度、備註皆會被覆蓋為新值。 |
+| `Update_UploadedAtDefault_ReturnsBadRequest` | 上傳時間為預設值（未填）時，回應 400。 |
+| `Update_NotOwner_ReturnsNotFound` | 嘗試編輯非本人擁有的紀錄時，回應 404。 |
+| `Update_NotAuthenticated_ReturnsUnauthorized` | 未登入使用者嘗試編輯紀錄時，回應 401。 |
+| `Delete_Owner_DeletesRecordAndCloudinaryResource` | 本人刪除自己擁有的紀錄時，回應 204，同時刪除 Cloudinary 上對應的影片資源，且該紀錄之後查無資料。 |
+| `Delete_NotOwner_ReturnsNotFound` | 嘗試刪除非本人擁有的紀錄時，回應 404。 |
+| `Delete_NotAuthenticated_ReturnsUnauthorized` | 未登入使用者嘗試刪除紀錄時，回應 401。 |
 | `GetVideo_UnknownId_ReturnsNotFound` | 以不存在的 ID 讀取影片時，回應 404。 |
 | `GetVideo_PrivateSend_NotOwner_ReturnsNotFound` | 紀錄可見度為「不公開」且非上傳者本人讀取時，回應 404。 |
 | `GetVideo_PrivateSend_Owner_ReturnsRedirectToSignedUrl` | 紀錄可見度為「不公開」但由上傳者本人讀取時，回應 302 並導向 Cloudinary 簽章播放網址。 |

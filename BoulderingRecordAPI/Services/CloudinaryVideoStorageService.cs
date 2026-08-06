@@ -61,4 +61,16 @@ public class CloudinaryVideoStorageService(Cloudinary cloudinary, IOptions<Cloud
             .Format("jpg")
             .BuildUrl(publicId);
     }
+
+    public async Task<bool> DeleteResourceAsync(string publicId, CancellationToken cancellationToken = default)
+    {
+        DeletionParams deletionParams = new DeletionParams(publicId)
+        {
+            ResourceType = ResourceType.Video,
+            Type = AuthenticatedType,
+        };
+
+        DeletionResult result = await cloudinary.DestroyAsync(deletionParams);
+        return result.Result == "ok" || result.Result == "not found";
+    }
 }

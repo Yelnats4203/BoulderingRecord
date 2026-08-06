@@ -1,6 +1,13 @@
 import axios from 'axios'
 import apiClient from './client'
-import type { CreateSendPayload, SendResponse, UploadAuthorization, VideoRecordFilter, VideoRecordResponse } from '../types/sends'
+import type {
+  CreateSendPayload,
+  SendResponse,
+  UpdateSendPayload,
+  UploadAuthorization,
+  VideoRecordFilter,
+  VideoRecordResponse,
+} from '../types/sends'
 
 export function getAllSends(): Promise<SendResponse[]> {
   return apiClient.get<SendResponse[]>('/sends').then((response) => response.data)
@@ -48,4 +55,19 @@ export function createSend(payload: CreateSendPayload): Promise<SendResponse> {
       note: payload.note || null,
     })
     .then((response) => response.data)
+}
+
+export function updateSend(id: string, payload: UpdateSendPayload): Promise<SendResponse> {
+  return apiClient
+    .put<SendResponse>(`/sends/${id}`, {
+      uploadedAt: payload.uploadedAt,
+      gymName: payload.gymName || null,
+      difficulty: payload.difficulty ? Number(payload.difficulty) : null,
+      note: payload.note || null,
+    })
+    .then((response) => response.data)
+}
+
+export function deleteSend(id: string): Promise<void> {
+  return apiClient.delete(`/sends/${id}`).then(() => undefined)
 }

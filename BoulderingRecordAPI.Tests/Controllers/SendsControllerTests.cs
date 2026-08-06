@@ -241,6 +241,112 @@ public class SendsControllerTests
     }
 
     [Fact]
+    public async Task Update_Owner_UpdatesFields()
+    {
+        Send send = new Send
+        {
+            UploaderId = TestUploaderId,
+            UploadedAt = DateTimeOffset.UtcNow,
+            VideoPublicId = "a",
+            GymName = "舊岩館",
+            Difficulty = 3,
+            Note = "舊備註",
+        };
+        SendsController controller = CreateController(new FakeSendRepository([send]));
+        DateTimeOffset newUploadedAt = DateTimeOffset.UtcNow.AddDays(-1);
+
+        IActionResult result = await controller.Update(
+            send.Id,
+            new UpdateSendRequest(newUploadedAt, "新岩館", 7, "新備註"),
+            CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        SendResponse response = Assert.IsType<SendResponse>(okResult.Value);
+        Assert.Equal(newUploadedAt, response.UploadedAt);
+        Assert.Equal("新岩館", response.GymName);
+        Assert.Equal(7, response.Difficulty);
+        Assert.Equal("新備註", response.Note);
+    }
+
+    [Fact]
+    public async Task Update_UploadedAtDefault_ReturnsBadRequest()
+    {
+        Send send = new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a" };
+        SendsController controller = CreateController(new FakeSendRepository([send]));
+
+        IActionResult result = await controller.Update(
+            send.Id,
+            new UpdateSendRequest(default, "新岩館", 7, "新備註"),
+            CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Update_NotOwner_ReturnsNotFound()
+    {
+        Send send = new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a" };
+        SendsController controller = CreateController(new FakeSendRepository([send]));
+
+        IActionResult result = await controller.Update(
+            send.Id,
+            new UpdateSendRequest(DateTimeOffset.UtcNow, "新岩館", 7, "新備註"),
+            CancellationToken.None);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task Update_NotAuthenticated_ReturnsUnauthorized()
+    {
+        SendsController controller = CreateController(authenticated: false);
+
+        IActionResult result = await controller.Update(
+            Guid.CreateVersion7(),
+            new UpdateSendRequest(DateTimeOffset.UtcNow, "新岩館", 7, "新備註"),
+            CancellationToken.None);
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task Delete_Owner_DeletesRecordAndCloudinaryResource()
+    {
+        Send send = new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "sends/owner/video" };
+        FakeSendRepository repository = new FakeSendRepository([send]);
+        FakeVideoStorageService videoStorageService = new FakeVideoStorageService();
+        SendsController controller = CreateController(repository, videoStorageService);
+
+        IActionResult result = await controller.Delete(send.Id, CancellationToken.None);
+
+        Assert.IsType<NoContentResult>(result);
+        Assert.Contains("sends/owner/video", videoStorageService.DeletedPublicIds);
+        IActionResult getResult = await controller.GetById(send.Id, CancellationToken.None);
+        Assert.IsType<NotFoundResult>(getResult);
+    }
+
+    [Fact]
+    public async Task Delete_NotOwner_ReturnsNotFound()
+    {
+        Send send = new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a" };
+        SendsController controller = CreateController(new FakeSendRepository([send]));
+
+        IActionResult result = await controller.Delete(send.Id, CancellationToken.None);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task Delete_NotAuthenticated_ReturnsUnauthorized()
+    {
+        SendsController controller = CreateController(authenticated: false);
+
+        IActionResult result = await controller.Delete(Guid.CreateVersion7(), CancellationToken.None);
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
     public async Task GetVideo_UnknownId_ReturnsNotFound()
     {
         SendsController controller = CreateController();

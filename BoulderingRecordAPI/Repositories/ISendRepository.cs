@@ -19,5 +19,7 @@ public interface ISendRepository
 
     Task AddAsync(Send send, CancellationToken cancellationToken = default);
 
+    Task DeleteAsync(Send send, CancellationToken cancellationToken = default);
+
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }
