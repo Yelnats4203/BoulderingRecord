@@ -55,8 +55,8 @@ dotnet test
 | `Delete_NotAuthenticated_ReturnsUnauthorized` | 未登入使用者嘗試刪除紀錄時，回應 401。 |
 | `GetVideo_UnknownId_ReturnsNotFound` | 以不存在的 ID 讀取影片時，回應 404。 |
 | `GetVideo_PrivateSend_NotOwner_ReturnsNotFound` | 紀錄可見度為「不公開」且非上傳者本人讀取時，回應 404。 |
-| `GetVideo_PrivateSend_Owner_ReturnsRedirectToSignedUrl` | 紀錄可見度為「不公開」但由上傳者本人讀取時，回應 302 並導向 Cloudinary 簽章播放網址。 |
-| `GetVideo_PublicOrShareableSend_NotOwner_ReturnsRedirectToSignedUrl` | 紀錄可見度為「公開」或「可被分享」時，非上傳者本人也能取得導向播放網址的 302 回應。 |
+| `GetVideo_PrivateSend_Owner_ReturnsSignedUrl` | 紀錄可見度為「不公開」但由上傳者本人讀取時，回應 200 並附帶 Cloudinary 簽章播放網址 JSON。 |
+| `GetVideo_PublicOrShareableSend_NotOwner_ReturnsSignedUrl` | 紀錄可見度為「公開」或「可被分享」時，非上傳者本人也能取得包含播放網址的 200 回應。 |
 
 ### SessionsController（`Controllers/SessionsControllerTests.cs`）
 

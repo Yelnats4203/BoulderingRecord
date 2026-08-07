@@ -199,11 +199,11 @@ public class SendsController(
     }
 
     /// <summary>
-    /// 依 ID 取得紀錄影片的時效性簽章網址並導向播放；私人紀錄僅上傳者本人可存取。
+    /// 依 ID 取得紀錄影片的時效性簽章播放網址；私人紀錄僅上傳者本人可存取。
     /// </summary>
     [TokenAuthorize]
     [HttpGet("{id:guid}/video")]
-    [ProducesResponseType(StatusCodes.Status302Found)]
+    [ProducesResponseType(typeof(VideoPlaybackResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetVideo(Guid id, CancellationToken cancellationToken)
     {
@@ -220,7 +220,7 @@ public class SendsController(
             return NotFound();
         }
 
-        return Redirect(videoStorageService.GetSignedPlaybackUrl(send.VideoPublicId));
+        return Ok(new VideoPlaybackResponse(videoStorageService.GetSignedPlaybackUrl(send.VideoPublicId)));
     }
 
     private Guid? GetUploaderId()

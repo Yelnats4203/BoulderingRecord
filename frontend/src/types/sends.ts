@@ -27,6 +27,10 @@ export interface CreateSendPayload {
   note: string
 }
 
+export interface VideoPlaybackResponse {
+  playbackUrl: string
+}
+
 export interface VideoRecordResponse {
   id: string
   gymName: string | null

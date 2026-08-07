@@ -374,7 +374,7 @@ public class SendsControllerTests
     }
 
     [Fact]
-    public async Task GetVideo_PrivateSend_Owner_ReturnsRedirectToSignedUrl()
+    public async Task GetVideo_PrivateSend_Owner_ReturnsSignedUrl()
     {
         Send send = new Send
         {
@@ -387,14 +387,15 @@ public class SendsControllerTests
 
         IActionResult result = await controller.GetVideo(send.Id, CancellationToken.None);
 
-        RedirectResult redirectResult = Assert.IsType<RedirectResult>(result);
-        Assert.Equal("https://fake-cdn.test/sends/owner/video?token=fake", redirectResult.Url);
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        VideoPlaybackResponse response = Assert.IsType<VideoPlaybackResponse>(okResult.Value);
+        Assert.Equal("https://fake-cdn.test/sends/owner/video?token=fake", response.PlaybackUrl);
     }
 
     [Theory]
     [InlineData(SendVisibility.Public)]
     [InlineData(SendVisibility.Shareable)]
-    public async Task GetVideo_PublicOrShareableSend_NotOwner_ReturnsRedirectToSignedUrl(SendVisibility visibility)
+    public async Task GetVideo_PublicOrShareableSend_NotOwner_ReturnsSignedUrl(SendVisibility visibility)
     {
         Send send = new Send
         {
@@ -407,7 +408,8 @@ public class SendsControllerTests
 
         IActionResult result = await controller.GetVideo(send.Id, CancellationToken.None);
 
-        RedirectResult redirectResult = Assert.IsType<RedirectResult>(result);
-        Assert.Equal("https://fake-cdn.test/sends/someone-else/video?token=fake", redirectResult.Url);
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        VideoPlaybackResponse response = Assert.IsType<VideoPlaybackResponse>(okResult.Value);
+        Assert.Equal("https://fake-cdn.test/sends/someone-else/video?token=fake", response.PlaybackUrl);
     }
 }

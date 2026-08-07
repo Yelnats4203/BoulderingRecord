@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { deleteSend, updateSend } from '../api/sends'
+import { ref, watch } from 'vue'
+import { deleteSend, getSendVideo, updateSend } from '../api/sends'
+import { useVideoPlaybackCacheStore } from '../stores/videoPlaybackCache'
 import type { VideoRecordResponse } from '../types/sends'
 import ConfirmDialog from './ConfirmDialog.vue'
 
@@ -13,6 +14,38 @@ const emit = defineEmits<{
   updated: [record: VideoRecordResponse]
   deleted: [id: string]
 }>()
+
+const videoPlaybackCache = useVideoPlaybackCacheStore()
+
+const playbackUrl = ref<string>('')
+const isVideoLoading = ref<boolean>(false)
+const videoErrorMessage = ref<string>('')
+
+watch(
+  () => props.record.id,
+  async (id) => {
+    videoErrorMessage.value = ''
+
+    const cachedUrl = videoPlaybackCache.get(id)
+    if (cachedUrl) {
+      playbackUrl.value = cachedUrl
+      return
+    }
+
+    playbackUrl.value = ''
+    isVideoLoading.value = true
+    try {
+      const video = await getSendVideo(id)
+      playbackUrl.value = video.playbackUrl
+      videoPlaybackCache.set(id, video.playbackUrl)
+    } catch {
+      videoErrorMessage.value = '影片載入失敗，請稍後再試。'
+    } finally {
+      isVideoLoading.value = false
+    }
+  },
+  { immediate: true },
+)
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleString()
@@ -96,7 +129,16 @@ async function handleConfirmDelete(): Promise<void> {
         <button class="btn-secondary" type="button" @click="emit('close')">關閉</button>
       </div>
 
-      <img class="video-thumbnail-large" :src="record.thumbnailUrl" alt="影片縮圖" />
+      <video
+        v-if="playbackUrl"
+        class="video-player"
+        controls
+        :poster="record.thumbnailUrl"
+        :src="playbackUrl"
+      ></video>
+      <img v-else class="video-thumbnail-large" :src="record.thumbnailUrl" alt="影片縮圖" />
+      <p v-if="isVideoLoading" class="hint-text">影片載入中...</p>
+      <p v-if="videoErrorMessage" class="error-text">{{ videoErrorMessage }}</p>
 
       <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
 
@@ -182,6 +224,14 @@ async function handleConfirmDelete(): Promise<void> {
   width: 100%;
   max-height: 260px;
   object-fit: cover;
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  margin-bottom: 16px;
+}
+
+.video-player {
+  width: 100%;
+  max-height: 360px;
   border-radius: var(--radius);
   background: var(--color-bg);
   margin-bottom: 16px;

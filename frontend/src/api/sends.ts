@@ -5,6 +5,7 @@ import type {
   SendResponse,
   UpdateSendPayload,
   UploadAuthorization,
+  VideoPlaybackResponse,
   VideoRecordFilter,
   VideoRecordResponse,
 } from '../types/sends'
@@ -70,4 +71,8 @@ export function updateSend(id: string, payload: UpdateSendPayload): Promise<Send
 
 export function deleteSend(id: string): Promise<void> {
   return apiClient.delete(`/sends/${id}`).then(() => undefined)
+}
+
+export function getSendVideo(id: string): Promise<VideoPlaybackResponse> {
+  return apiClient.get<VideoPlaybackResponse>(`/sends/${id}/video`).then((response) => response.data)
 }
