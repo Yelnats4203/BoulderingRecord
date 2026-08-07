@@ -1,0 +1,2 @@
+﻿[2026-08-07 13:14:39] git status
+[2026-08-07 13:15:35] 我已修改appsettings json，移除cloudname，未來cloudname也要一並檢查是否清空；git commit
