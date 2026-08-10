@@ -51,7 +51,10 @@ onMounted(() => {
 
 <template>
   <div class="page video-records-page">
-    <h2>影片紀錄清單</h2>
+    <div class="page-header">
+      <h2>影片紀錄清單</h2>
+      <RouterLink class="btn-primary upload-link" :to="{ name: 'upload' }">上傳影片</RouterLink>
+    </div>
 
     <VideoFilterForm :is-loading="isLoading" @filter="fetchRecords" />
 
@@ -70,7 +73,21 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.video-records-page h2 {
-  margin-top: 0;
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-header h2 {
+  margin: 0;
+}
+
+.upload-link {
+  width: auto;
+  display: inline-block;
+  text-decoration: none;
+  white-space: nowrap;
 }
 </style>

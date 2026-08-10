@@ -1,13 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { createSend, getAllSends, getUploadAuthorization, uploadVideoToCloudinary } from '../api/sends'
-import type { SendResponse } from '../types/sends'
-import SendList from '../components/SendList.vue'
+import { ref } from 'vue'
+import { createSend, getUploadAuthorization, uploadVideoToCloudinary } from '../api/sends'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
-
-const sends = ref<SendResponse[]>([])
-const isLoadingSends = ref<boolean>(false)
-const listErrorMessage = ref<string>('')
 
 const videoFile = ref<File | null>(null)
 const gymName = ref<string>('')
@@ -20,18 +14,6 @@ const uploadSuccessMessage = ref<string>('')
 function handleFileChange(event: Event): void {
   const input = event.target as HTMLInputElement
   videoFile.value = input.files && input.files.length > 0 ? input.files[0] : null
-}
-
-async function fetchSends(): Promise<void> {
-  isLoadingSends.value = true
-  listErrorMessage.value = ''
-  try {
-    sends.value = await getAllSends()
-  } catch {
-    listErrorMessage.value = '讀取紀錄列表失敗，請稍後再試。'
-  } finally {
-    isLoadingSends.value = false
-  }
 }
 
 async function handleUpload(): Promise<void> {
@@ -61,17 +43,12 @@ async function handleUpload(): Promise<void> {
     if (fileInput) {
       fileInput.value = ''
     }
-    await fetchSends()
   } catch {
     uploadErrorMessage.value = '上傳失敗，請確認影片格式後再試一次。'
   } finally {
     isUploading.value = false
   }
 }
-
-onMounted(() => {
-  void fetchSends()
-})
 </script>
 
 <template>
@@ -107,13 +84,6 @@ onMounted(() => {
         <span>{{ isUploading ? '上傳中...' : '上傳' }}</span>
       </button>
     </form>
-
-    <section class="send-section">
-      <h2>所有使用者的紀錄</h2>
-      <p v-if="listErrorMessage" class="error-text">{{ listErrorMessage }}</p>
-      <p v-else-if="isLoadingSends" class="hint-text">載入中...</p>
-      <SendList v-else :sends="sends" />
-    </section>
   </div>
 </template>
 
@@ -131,9 +101,5 @@ onMounted(() => {
   color: #16a34a;
   font-size: 0.9rem;
   margin: 0 0 12px;
-}
-
-.send-section h2 {
-  font-size: 1.1rem;
 }
 </style>
