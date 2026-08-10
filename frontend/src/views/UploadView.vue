@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { createSend, getAllSends, getUploadAuthorization, uploadVideoToCloudinary } from '../api/sends'
 import type { SendResponse } from '../types/sends'
 import SendList from '../components/SendList.vue'
+import LoadingSpinner from '../components/LoadingSpinner.vue'
 
 const sends = ref<SendResponse[]>([])
 const isLoadingSends = ref<boolean>(false)
@@ -101,8 +102,9 @@ onMounted(() => {
         <textarea id="note" v-model="note"></textarea>
       </div>
 
-      <button class="btn-primary" type="submit" :disabled="isUploading">
-        {{ isUploading ? '上傳中...' : '上傳' }}
+      <button class="btn-primary" :class="{ 'btn-loading': isUploading }" type="submit" :disabled="isUploading">
+        <LoadingSpinner v-if="isUploading" :size="16" />
+        <span>{{ isUploading ? '上傳中...' : '上傳' }}</span>
       </button>
     </form>
 

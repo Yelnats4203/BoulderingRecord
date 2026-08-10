@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { VideoRecordFilter } from '../types/sends'
+import LoadingSpinner from './LoadingSpinner.vue'
+
+const props = defineProps<{
+  isLoading?: boolean
+}>()
 
 const emit = defineEmits<{
   filter: [filter: Partial<VideoRecordFilter>]
@@ -13,6 +18,9 @@ const minDifficulty = ref<string>('')
 const maxDifficulty = ref<string>('')
 
 function handleSubmit(): void {
+  if (props.isLoading) {
+    return
+  }
   emit('filter', {
     gymName: gymName.value,
     uploadedFrom: uploadedFrom.value,
@@ -52,7 +60,15 @@ function handleSubmit(): void {
       </div>
     </div>
 
-    <button class="btn-primary filter-submit" type="submit">篩選</button>
+    <button
+      class="btn-primary filter-submit"
+      :class="{ 'btn-loading': isLoading }"
+      type="submit"
+      :disabled="isLoading"
+    >
+      <LoadingSpinner v-if="isLoading" :size="16" />
+      <span>{{ isLoading ? '篩選中...' : '篩選' }}</span>
+    </button>
   </form>
 </template>
 

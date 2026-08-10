@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import LoadingSpinner from './LoadingSpinner.vue'
+
 defineProps<{
   title: string
   message: string
   confirmDisabled?: boolean
+  confirmLoading?: boolean
+  confirmLoadingText?: string
 }>()
 
 const emit = defineEmits<{
@@ -17,8 +21,17 @@ const emit = defineEmits<{
       <h3>{{ title }}</h3>
       <p>{{ message }}</p>
       <div class="confirm-actions">
-        <button class="btn-secondary" type="button" @click="emit('cancel')">取消</button>
-        <button class="btn-danger" type="button" :disabled="confirmDisabled" @click="emit('confirm')">確定</button>
+        <button class="btn-secondary" type="button" :disabled="confirmLoading" @click="emit('cancel')">取消</button>
+        <button
+          class="btn-danger"
+          :class="{ 'btn-loading': confirmLoading }"
+          type="button"
+          :disabled="confirmDisabled || confirmLoading"
+          @click="emit('confirm')"
+        >
+          <LoadingSpinner v-if="confirmLoading" :size="16" />
+          <span>{{ confirmLoading && confirmLoadingText ? confirmLoadingText : '確定' }}</span>
+        </button>
       </div>
     </div>
   </div>

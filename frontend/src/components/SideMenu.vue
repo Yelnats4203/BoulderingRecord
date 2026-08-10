@@ -1,16 +1,25 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { logout as logoutApi } from '../api/auth'
 import { useAuthStore } from '../stores/auth'
+import LoadingSpinner from './LoadingSpinner.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
 
+const isLoggingOut = ref<boolean>(false)
+
 async function handleLogout(): Promise<void> {
+  if (isLoggingOut.value) {
+    return
+  }
+  isLoggingOut.value = true
   try {
     await logoutApi()
   } finally {
     authStore.clearSession()
+    isLoggingOut.value = false
     await router.push({ name: 'login' })
   }
 }
@@ -29,7 +38,16 @@ async function handleLogout(): Promise<void> {
       </li>
     </ul>
 
-    <button class="btn-secondary side-menu-logout" type="button" @click="handleLogout">登出</button>
+    <button
+      class="btn-secondary side-menu-logout"
+      :class="{ 'btn-loading': isLoggingOut }"
+      type="button"
+      :disabled="isLoggingOut"
+      @click="handleLogout"
+    >
+      <LoadingSpinner v-if="isLoggingOut" :size="16" />
+      <span>{{ isLoggingOut ? '登出中...' : '登出' }}</span>
+    </button>
   </nav>
 </template>
 

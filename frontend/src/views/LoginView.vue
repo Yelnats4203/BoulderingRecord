@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { login } from '../api/auth'
 import { useAuthStore } from '../stores/auth'
+import LoadingSpinner from '../components/LoadingSpinner.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -44,8 +45,9 @@ async function handleSubmit(): Promise<void> {
         <input id="psw" v-model="psw" type="password" autocomplete="current-password" required />
       </div>
 
-      <button class="btn-primary" type="submit" :disabled="isSubmitting">
-        {{ isSubmitting ? '登入中...' : '登入' }}
+      <button class="btn-primary" :class="{ 'btn-loading': isSubmitting }" type="submit" :disabled="isSubmitting">
+        <LoadingSpinner v-if="isSubmitting" :size="16" />
+        <span>{{ isSubmitting ? '登入中...' : '登入' }}</span>
       </button>
 
       <p class="hint-text">登入後，其他裝置上原本的登入狀態將自動失效。</p>

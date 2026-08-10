@@ -120,6 +120,13 @@ button:disabled {
   background-color: #b91c1c;
 }
 
+.btn-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .error-text {
   color: var(--color-danger);
   font-size: 0.9rem;

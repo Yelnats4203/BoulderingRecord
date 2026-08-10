@@ -4,6 +4,7 @@ import { deleteSend, getSendVideo, updateSend } from '../api/sends'
 import { useVideoPlaybackCacheStore } from '../stores/videoPlaybackCache'
 import type { VideoRecordResponse } from '../types/sends'
 import ConfirmDialog from './ConfirmDialog.vue'
+import LoadingSpinner from './LoadingSpinner.vue'
 
 const props = defineProps<{
   record: VideoRecordResponse
@@ -161,7 +162,10 @@ async function handleConfirmDelete(): Promise<void> {
         </div>
         <div class="edit-actions">
           <button class="btn-secondary" type="button" :disabled="isSaving" @click="cancelEditing">取消</button>
-          <button class="btn-primary" type="submit" :disabled="isSaving">{{ isSaving ? '儲存中...' : '儲存' }}</button>
+          <button class="btn-primary" :class="{ 'btn-loading': isSaving }" type="submit" :disabled="isSaving">
+            <LoadingSpinner v-if="isSaving" :size="16" />
+            <span>{{ isSaving ? '儲存中...' : '儲存' }}</span>
+          </button>
         </div>
       </form>
 
@@ -183,6 +187,8 @@ async function handleConfirmDelete(): Promise<void> {
       title="刪除影片紀錄"
       message="刪除後將無法復原，且會一併刪除 Cloudinary 上的影片，確定要刪除嗎？"
       :confirm-disabled="isDeleting"
+      :confirm-loading="isDeleting"
+      confirm-loading-text="刪除中..."
       @confirm="handleConfirmDelete"
       @cancel="isConfirmingDelete = false"
     />

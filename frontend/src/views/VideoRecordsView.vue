@@ -53,7 +53,7 @@ onMounted(() => {
   <div class="page video-records-page">
     <h2>影片紀錄清單</h2>
 
-    <VideoFilterForm @filter="fetchRecords" />
+    <VideoFilterForm :is-loading="isLoading" @filter="fetchRecords" />
 
     <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
     <p v-else-if="isLoading" class="hint-text">載入中...</p>
