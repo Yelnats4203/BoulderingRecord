@@ -165,4 +165,53 @@ public class AuthControllerTests
         RefreshTokenResponse response = Assert.IsType<RefreshTokenResponse>(okResult.Value);
         Assert.True(response.HasEditPermission);
     }
+
+    [Fact]
+    public async Task ChangePassword_ValidRequest_UpdatesPasswordHash()
+    {
+        User user = CreateTestUser();
+        AuthController controller = CreateController(user, CreateTokenService(), new FakeActiveTokenStore(), authenticatedAcc: TestAcc);
+
+        IActionResult result = await controller.ChangePassword(
+            new ChangePasswordRequest(TestPassword, "NewPassword1!"), CancellationToken.None);
+
+        Assert.IsType<NoContentResult>(result);
+        Assert.NotEqual(PasswordVerificationResult.Failed, PasswordHasher.VerifyHashedPassword(user, user.Psw, "NewPassword1!"));
+    }
+
+    [Fact]
+    public async Task ChangePassword_WrongOldPassword_ReturnsBadRequest()
+    {
+        User user = CreateTestUser();
+        AuthController controller = CreateController(user, CreateTokenService(), new FakeActiveTokenStore(), authenticatedAcc: TestAcc);
+
+        IActionResult result = await controller.ChangePassword(
+            new ChangePasswordRequest("wrong-old-password", "NewPassword1!"), CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WeakNewPassword_ReturnsBadRequest()
+    {
+        User user = CreateTestUser();
+        AuthController controller = CreateController(user, CreateTokenService(), new FakeActiveTokenStore(), authenticatedAcc: TestAcc);
+
+        IActionResult result = await controller.ChangePassword(
+            new ChangePasswordRequest(TestPassword, "weakpassword"), CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task ChangePassword_Unauthenticated_ReturnsUnauthorized()
+    {
+        User user = CreateTestUser();
+        AuthController controller = CreateController(user, CreateTokenService(), new FakeActiveTokenStore());
+
+        IActionResult result = await controller.ChangePassword(
+            new ChangePasswordRequest(TestPassword, "NewPassword1!"), CancellationToken.None);
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
 }

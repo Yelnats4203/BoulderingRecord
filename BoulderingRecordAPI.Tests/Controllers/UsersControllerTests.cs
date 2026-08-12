@@ -23,7 +23,7 @@ public class UsersControllerTests
         UsersController controller = CreateController(userRepository);
 
         IActionResult result = await controller.Create(
-            new CreateUserRequest("新使用者", "newacc", "password123", true),
+            new CreateUserRequest("新使用者", "newacc", "Password123!", true),
             CancellationToken.None);
 
         ObjectResult created = Assert.IsType<ObjectResult>(result);
@@ -35,7 +35,7 @@ public class UsersControllerTests
 
         User? stored = await userRepository.GetByAccAsync("newacc", CancellationToken.None);
         Assert.NotNull(stored);
-        Assert.NotEqual("password123", stored!.Psw);
+        Assert.NotEqual("Password123!", stored!.Psw);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class UsersControllerTests
         UsersController controller = CreateController(userRepository);
 
         IActionResult result = await controller.Create(
-            new CreateUserRequest("新使用者", "dupacc", "password123", false),
+            new CreateUserRequest("新使用者", "dupacc", "Password123!", false),
             CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(result);
@@ -62,6 +62,21 @@ public class UsersControllerTests
 
         IActionResult result = await controller.Create(
             new CreateUserRequest(username, acc, psw, false), CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Theory]
+    [InlineData("password123")]
+    [InlineData("PASSWORD123!")]
+    [InlineData("Password!!!!")]
+    [InlineData("Pass1!")]
+    public async Task Create_WeakPassword_ReturnsBadRequest(string psw)
+    {
+        UsersController controller = CreateController(new FakeUserRepository([]));
+
+        IActionResult result = await controller.Create(
+            new CreateUserRequest("新使用者", "newacc", psw, false), CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(result);
     }

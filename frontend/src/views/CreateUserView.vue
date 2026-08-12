@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { createUser } from '../api/users'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
+import PasswordInput from '../components/PasswordInput.vue'
 
 const username = ref<string>('')
 const acc = ref<string>('')
@@ -55,7 +56,8 @@ async function handleSubmit(): Promise<void> {
 
       <div class="form-field">
         <label for="psw">密碼</label>
-        <input id="psw" v-model="psw" type="password" autocomplete="new-password" required />
+        <PasswordInput id="psw" v-model="psw" autocomplete="new-password" />
+        <p class="hint-text">密碼需至少 8 碼，並包含大小寫英文、數字與特殊符號。</p>
       </div>
 
       <div class="form-field form-field-checkbox">

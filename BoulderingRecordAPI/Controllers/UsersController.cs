@@ -2,6 +2,7 @@ using BoulderingRecordAPI.Entities;
 using BoulderingRecordAPI.Filters;
 using BoulderingRecordAPI.Models.Users;
 using BoulderingRecordAPI.Repositories;
+using BoulderingRecordAPI.Validation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,6 +34,11 @@ public class UsersController(IUserRepository userRepository) : ControllerBase
             string.IsNullOrWhiteSpace(request.Psw))
         {
             return BadRequest("使用者名稱、帳號、密碼皆為必填。");
+        }
+
+        if (!PasswordPolicy.IsValid(request.Psw))
+        {
+            return BadRequest(PasswordPolicy.ErrorMessage);
         }
 
         User? existing = await userRepository.GetByAccAsync(request.Acc, cancellationToken);

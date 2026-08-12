@@ -42,6 +42,9 @@ async function handleLogout(): Promise<void> {
       <li v-if="authStore.hasEditPermission">
         <RouterLink class="side-menu-link" :to="{ name: 'userList' }">使用者清單</RouterLink>
       </li>
+      <li>
+        <RouterLink class="side-menu-link" :to="{ name: 'changePassword' }">修改密碼</RouterLink>
+      </li>
     </ul>
 
     <button

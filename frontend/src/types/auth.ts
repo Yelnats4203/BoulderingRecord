@@ -14,3 +14,8 @@ export interface RefreshTokenResponse {
   expiresAt: string
   hasEditPermission: boolean
 }
+
+export interface ChangePasswordRequest {
+  oldPsw: string
+  newPsw: string
+}

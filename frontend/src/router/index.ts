@@ -6,6 +6,7 @@ import UploadView from '../views/UploadView.vue'
 import VideoRecordsView from '../views/VideoRecordsView.vue'
 import CreateUserView from '../views/CreateUserView.vue'
 import UserListView from '../views/UserListView.vue'
+import ChangePasswordView from '../views/ChangePasswordView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -17,6 +18,12 @@ const router = createRouter({
       children: [
         { path: 'upload', name: 'upload', component: UploadView, meta: { requiresAuth: true } },
         { path: 'videos', name: 'videos', component: VideoRecordsView, meta: { requiresAuth: true } },
+        {
+          path: 'change-password',
+          name: 'changePassword',
+          component: ChangePasswordView,
+          meta: { requiresAuth: true },
+        },
         {
           path: 'users',
           name: 'users',

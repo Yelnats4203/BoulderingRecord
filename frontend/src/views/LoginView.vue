@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { login } from '../api/auth'
 import { useAuthStore } from '../stores/auth'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
+import PasswordInput from '../components/PasswordInput.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -42,7 +43,7 @@ async function handleSubmit(): Promise<void> {
 
       <div class="form-field">
         <label for="psw">密碼</label>
-        <input id="psw" v-model="psw" type="password" autocomplete="current-password" required />
+        <PasswordInput id="psw" v-model="psw" autocomplete="current-password" />
       </div>
 
       <button class="btn-primary" :class="{ 'btn-loading': isSubmitting }" type="submit" :disabled="isSubmitting">

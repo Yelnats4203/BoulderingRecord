@@ -3,6 +3,7 @@ using BoulderingRecordAPI.Filters;
 using BoulderingRecordAPI.Models.Auth;
 using BoulderingRecordAPI.Repositories;
 using BoulderingRecordAPI.Services;
+using BoulderingRecordAPI.Validation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -90,5 +91,49 @@ public class AuthController(
         tokenStore.SetActiveToken(acc, newToken, expiresAt);
 
         return Ok(new RefreshTokenResponse(newToken, expiresAt, user.HasEditPermission));
+    }
+
+    /// <summary>
+    /// 修改目前登入使用者自己的密碼，需輸入原密碼驗證身分，並提供符合格式規則的新密碼。
+    /// </summary>
+    [TokenAuthorize]
+    [HttpPost("change-password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.OldPsw) || string.IsNullOrWhiteSpace(request.NewPsw))
+        {
+            return BadRequest("原密碼與新密碼皆為必填。");
+        }
+
+        string? acc = User.FindFirst(TokenClaimTypes.Acc)?.Value;
+        if (string.IsNullOrEmpty(acc))
+        {
+            return Unauthorized();
+        }
+
+        User? user = await userRepository.GetByAccAsync(acc, cancellationToken);
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        PasswordVerificationResult verificationResult = PasswordHasher.VerifyHashedPassword(user, user.Psw, request.OldPsw);
+        if (verificationResult == PasswordVerificationResult.Failed)
+        {
+            return BadRequest("原密碼錯誤。");
+        }
+
+        if (!PasswordPolicy.IsValid(request.NewPsw))
+        {
+            return BadRequest(PasswordPolicy.ErrorMessage);
+        }
+
+        user.Psw = PasswordHasher.HashPassword(user, request.NewPsw);
+        await userRepository.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
     }
 }
