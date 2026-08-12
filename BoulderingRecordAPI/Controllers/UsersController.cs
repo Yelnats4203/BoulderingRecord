@@ -55,4 +55,19 @@ public class UsersController(IUserRepository userRepository) : ControllerBase
 
         return StatusCode(StatusCodes.Status201Created, UserResponse.FromEntity(user));
     }
+
+    /// <summary>
+    /// 取得所有使用者清單，僅具編輯權限的使用者可呼叫，回應不含密碼欄位。
+    /// </summary>
+    [TokenAuthorize]
+    [RequireEditPermission]
+    [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<UserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    {
+        List<User> users = await userRepository.GetAllAsync(cancellationToken);
+        return Ok(users.Select(UserResponse.FromEntity));
+    }
 }

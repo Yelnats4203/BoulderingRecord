@@ -5,6 +5,7 @@ import LoginView from '../views/LoginView.vue'
 import UploadView from '../views/UploadView.vue'
 import VideoRecordsView from '../views/VideoRecordsView.vue'
 import CreateUserView from '../views/CreateUserView.vue'
+import UserListView from '../views/UserListView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -20,6 +21,12 @@ const router = createRouter({
           path: 'users',
           name: 'users',
           component: CreateUserView,
+          meta: { requiresAuth: true, requiresEditPermission: true },
+        },
+        {
+          path: 'user-list',
+          name: 'userList',
+          component: UserListView,
           meta: { requiresAuth: true, requiresEditPermission: true },
         },
         { path: '', redirect: '/upload' },

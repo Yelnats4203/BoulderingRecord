@@ -65,4 +65,21 @@ public class UsersControllerTests
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
+
+    [Fact]
+    public async Task GetAll_ReturnsAllUsersWithoutPassword()
+    {
+        User first = new User { Username = "使用者一", Acc = "acc1", Psw = "hashed1", HasEditPermission = true, CreatedAt = DateTime.UtcNow };
+        User second = new User { Username = "使用者二", Acc = "acc2", Psw = "hashed2", HasEditPermission = false, CreatedAt = DateTime.UtcNow };
+        FakeUserRepository userRepository = new FakeUserRepository([first, second]);
+        UsersController controller = CreateController(userRepository);
+
+        IActionResult result = await controller.GetAll(CancellationToken.None);
+
+        OkObjectResult ok = Assert.IsType<OkObjectResult>(result);
+        List<UserResponse> responses = Assert.IsAssignableFrom<IEnumerable<UserResponse>>(ok.Value).ToList();
+        Assert.Equal(2, responses.Count);
+        Assert.Contains(responses, r => r.Acc == "acc1" && r.Username == "使用者一" && r.HasEditPermission);
+        Assert.Contains(responses, r => r.Acc == "acc2" && r.Username == "使用者二" && !r.HasEditPermission);
+    }
 }

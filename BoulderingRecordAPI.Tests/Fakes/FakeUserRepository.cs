@@ -13,6 +13,9 @@ public class FakeUserRepository(IEnumerable<User> seedUsers) : IUserRepository
     public Task<User?> GetByAccAsync(string acc, CancellationToken cancellationToken = default)
         => Task.FromResult(_users.FirstOrDefault(u => u.Acc == acc));
 
+    public Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(_users.OrderBy(u => u.CreatedAt).ToList());
+
     public Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
         _users.Add(user);

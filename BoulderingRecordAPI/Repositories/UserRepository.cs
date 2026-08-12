@@ -12,6 +12,9 @@ public class UserRepository(BoulderingRecordDbContext dbContext) : IUserReposito
     public Task<User?> GetByAccAsync(string acc, CancellationToken cancellationToken = default)
         => dbContext.Users.FirstOrDefaultAsync(u => u.Acc == acc, cancellationToken);
 
+    public Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default)
+        => dbContext.Users.OrderBy(u => u.CreatedAt).ToListAsync(cancellationToken);
+
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
         => await dbContext.Users.AddAsync(user, cancellationToken);
 
