@@ -43,7 +43,7 @@ public class AuthController(
         (string token, DateTimeOffset expiresAt) = tokenService.GenerateToken(user);
         tokenStore.SetActiveToken(user.Acc, token, expiresAt);
 
-        return Ok(new LoginResponse(token, expiresAt));
+        return Ok(new LoginResponse(token, expiresAt, user.HasEditPermission));
     }
 
     /// <summary>
@@ -89,6 +89,6 @@ public class AuthController(
         (string newToken, DateTimeOffset expiresAt) = tokenService.GenerateToken(user);
         tokenStore.SetActiveToken(acc, newToken, expiresAt);
 
-        return Ok(new RefreshTokenResponse(newToken, expiresAt));
+        return Ok(new RefreshTokenResponse(newToken, expiresAt, user.HasEditPermission));
     }
 }

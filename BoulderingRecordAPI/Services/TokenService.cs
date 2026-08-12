@@ -22,6 +22,7 @@ public class TokenService(IOptions<JwtSettings> jwtOptions) : ITokenService
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(TokenClaimTypes.Acc, user.Acc),
             new Claim(ClaimTypes.Name, user.Username),
+            new Claim(TokenClaimTypes.HasEditPermission, user.HasEditPermission ? "true" : "false"),
         };
 
         SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));

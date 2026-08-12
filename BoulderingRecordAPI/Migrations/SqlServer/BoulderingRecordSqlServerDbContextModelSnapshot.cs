@@ -97,6 +97,11 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("HasEditPermission")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Psw")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

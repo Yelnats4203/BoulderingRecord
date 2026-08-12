@@ -22,6 +22,7 @@ public class BoulderingRecordDbContext(DbContextOptions options)
             entity.Property(u => u.Acc).IsRequired();
             entity.HasIndex(u => u.Acc).IsUnique();
             entity.Property(u => u.Psw).IsRequired();
+            entity.Property(u => u.HasEditPermission).IsRequired().HasDefaultValue(false);
         });
 
         modelBuilder.Entity<Send>(entity =>

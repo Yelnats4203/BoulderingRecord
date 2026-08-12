@@ -36,6 +36,9 @@ async function handleLogout(): Promise<void> {
       <li>
         <RouterLink class="side-menu-link" :to="{ name: 'videos' }">影片紀錄清單</RouterLink>
       </li>
+      <li v-if="authStore.hasEditPermission">
+        <RouterLink class="side-menu-link" :to="{ name: 'users' }">新增使用者</RouterLink>
+      </li>
     </ul>
 
     <button

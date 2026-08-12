@@ -18,12 +18,13 @@ public class AuthControllerTests
 
     private static readonly PasswordHasher<User> PasswordHasher = new();
 
-    private static User CreateTestUser() => new()
+    private static User CreateTestUser(bool hasEditPermission = false) => new()
     {
         Username = "測試攀岩者",
         Acc = TestAcc,
         Psw = PasswordHasher.HashPassword(null!, TestPassword),
         CreatedAt = DateTime.UtcNow,
+        HasEditPermission = hasEditPermission,
     };
 
     private static ITokenService CreateTokenService() => new TokenService(Microsoft.Extensions.Options.Options.Create(new JwtSettings
@@ -62,6 +63,19 @@ public class AuthControllerTests
         LoginResponse response = Assert.IsType<LoginResponse>(okResult.Value);
         Assert.True(tokenStore.TryGetActiveToken(TestAcc, out string? storedToken));
         Assert.Equal(response.Token, storedToken);
+    }
+
+    [Fact]
+    public async Task Login_ValidCredentials_ReturnsHasEditPermissionFromUser()
+    {
+        User user = CreateTestUser(hasEditPermission: true);
+        AuthController controller = CreateController(user, CreateTokenService(), new FakeActiveTokenStore());
+
+        IActionResult result = await controller.Login(new LoginRequest(TestAcc, TestPassword), CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        LoginResponse response = Assert.IsType<LoginResponse>(okResult.Value);
+        Assert.True(response.HasEditPermission);
     }
 
     [Fact]
@@ -135,5 +149,20 @@ public class AuthControllerTests
         Assert.True(tokenStore.TryGetActiveToken(TestAcc, out string? activeToken));
         Assert.Equal(response.Token, activeToken);
         Assert.NotEqual(oldToken, activeToken);
+    }
+
+    [Fact]
+    public async Task Refresh_ReturnsHasEditPermissionFromUser()
+    {
+        User user = CreateTestUser(hasEditPermission: true);
+        FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
+        tokenStore.SetActiveToken(TestAcc, "old-token", DateTimeOffset.UtcNow.AddHours(2));
+        AuthController controller = CreateController(user, CreateTokenService(), tokenStore, authenticatedAcc: TestAcc);
+
+        IActionResult result = await controller.Refresh(CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        RefreshTokenResponse response = Assert.IsType<RefreshTokenResponse>(okResult.Value);
+        Assert.True(response.HasEditPermission);
     }
 }

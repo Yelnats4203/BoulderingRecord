@@ -5,4 +5,5 @@ namespace BoulderingRecordAPI.Models.Auth;
 /// </summary>
 /// <param name="Token">新的 JWT token。</param>
 /// <param name="ExpiresAt">新 token 的到期時間。</param>
-public record RefreshTokenResponse(string Token, DateTimeOffset ExpiresAt);
+/// <param name="HasEditPermission">是否具有編輯權限。</param>
+public record RefreshTokenResponse(string Token, DateTimeOffset ExpiresAt, bool HasEditPermission);

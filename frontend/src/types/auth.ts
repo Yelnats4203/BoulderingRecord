@@ -6,9 +6,11 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string
   expiresAt: string
+  hasEditPermission: boolean
 }
 
 export interface RefreshTokenResponse {
   token: string
   expiresAt: string
+  hasEditPermission: boolean
 }

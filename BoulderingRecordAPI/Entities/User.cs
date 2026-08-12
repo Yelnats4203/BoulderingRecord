@@ -29,4 +29,9 @@ public class User
     /// 帳號建立時間。
     /// </summary>
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>
+    /// 是否具有編輯權限。
+    /// </summary>
+    public bool HasEditPermission { get; set; }
 }
