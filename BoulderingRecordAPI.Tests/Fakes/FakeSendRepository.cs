@@ -10,9 +10,6 @@ public class FakeSendRepository(IEnumerable<Send>? seedSends = null) : ISendRepo
     public Task<Send?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => Task.FromResult(_sends.FirstOrDefault(s => s.Id == id));
 
-    public Task<List<Send>> GetAllAsync(CancellationToken cancellationToken = default)
-        => Task.FromResult(_sends.OrderByDescending(s => s.UploadedAt).ToList());
-
     public Task<List<Send>> GetByUploaderIdAsync(
         Guid uploaderId,
         string? gymName,

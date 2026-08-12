@@ -74,18 +74,7 @@ public class SendsController(
         await sendRepository.AddAsync(send, cancellationToken);
         await sendRepository.SaveChangesAsync(cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = send.Id }, SendResponse.FromEntity(send));
-    }
-
-    /// <summary>
-    /// 取得所有完攀紀錄清單。
-    /// </summary>
-    [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<SendResponse>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
-    {
-        List<Send> sends = await sendRepository.GetAllAsync(cancellationToken);
-        return Ok(sends.Select(SendResponse.FromEntity));
+        return StatusCode(StatusCodes.Status201Created, SendResponse.FromEntity(send));
     }
 
     /// <summary>
@@ -179,23 +168,6 @@ public class SendsController(
         await sendRepository.SaveChangesAsync(cancellationToken);
 
         return NoContent();
-    }
-
-    /// <summary>
-    /// 依 ID 取得單筆完攀紀錄，不存在則回傳 404。
-    /// </summary>
-    [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(SendResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
-    {
-        Send? send = await sendRepository.GetByIdAsync(id, cancellationToken);
-        if (send is null)
-        {
-            return NotFound();
-        }
-
-        return Ok(SendResponse.FromEntity(send));
     }
 
     /// <summary>

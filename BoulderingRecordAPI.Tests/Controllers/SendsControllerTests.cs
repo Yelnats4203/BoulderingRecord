@@ -66,7 +66,8 @@ public class SendsControllerTests
             new CreateSendRequest(Guid.CreateVersion7(), "測試岩館", 5, "備註"),
             CancellationToken.None);
 
-        CreatedAtActionResult created = Assert.IsType<CreatedAtActionResult>(result);
+        ObjectResult created = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status201Created, created.StatusCode);
         SendResponse response = Assert.IsType<SendResponse>(created.Value);
         Assert.Equal("測試岩館", response.GymName);
         Assert.Equal(5, response.Difficulty);
@@ -97,46 +98,6 @@ public class SendsControllerTests
             CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(result);
-    }
-
-    [Fact]
-    public async Task GetAll_ReturnsAllSends()
-    {
-        Send[] seed = new[]
-        {
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a" },
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "b" },
-        };
-        SendsController controller = CreateController(new FakeSendRepository(seed));
-
-        IActionResult result = await controller.GetAll(CancellationToken.None);
-
-        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
-        IEnumerable<SendResponse> sends = Assert.IsAssignableFrom<IEnumerable<SendResponse>>(okResult.Value);
-        Assert.Equal(2, sends.Count());
-    }
-
-    [Fact]
-    public async Task GetById_ExistingId_ReturnsSend()
-    {
-        Send send = new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a" };
-        SendsController controller = CreateController(new FakeSendRepository([send]));
-
-        IActionResult result = await controller.GetById(send.Id, CancellationToken.None);
-
-        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
-        SendResponse response = Assert.IsType<SendResponse>(okResult.Value);
-        Assert.Equal(send.Id, response.Id);
-    }
-
-    [Fact]
-    public async Task GetById_UnknownId_ReturnsNotFound()
-    {
-        SendsController controller = CreateController();
-
-        IActionResult result = await controller.GetById(Guid.CreateVersion7(), CancellationToken.None);
-
-        Assert.IsType<NotFoundResult>(result);
     }
 
     [Fact]
@@ -321,8 +282,8 @@ public class SendsControllerTests
 
         Assert.IsType<NoContentResult>(result);
         Assert.Contains("sends/owner/video", videoStorageService.DeletedPublicIds);
-        IActionResult getResult = await controller.GetById(send.Id, CancellationToken.None);
-        Assert.IsType<NotFoundResult>(getResult);
+        Send? remaining = await repository.GetByIdAsync(send.Id, CancellationToken.None);
+        Assert.Null(remaining);
     }
 
     [Fact]

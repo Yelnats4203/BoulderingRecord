@@ -9,12 +9,6 @@ public class SendRepository(BoulderingRecordDbContext dbContext) : ISendReposito
     public Task<Send?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => dbContext.Sends.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
-    public async Task<List<Send>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        List<Send> sends = await dbContext.Sends.ToListAsync(cancellationToken);
-        return sends.OrderByDescending(s => s.UploadedAt).ToList();
-    }
-
     public async Task<List<Send>> GetByUploaderIdAsync(
         Guid uploaderId,
         string? gymName,

@@ -6,8 +6,6 @@ public interface ISendRepository
 {
     Task<Send?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
-    Task<List<Send>> GetAllAsync(CancellationToken cancellationToken = default);
-
     Task<List<Send>> GetByUploaderIdAsync(
         Guid uploaderId,
         string? gymName,

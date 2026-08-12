@@ -10,10 +10,6 @@ import type {
   VideoRecordResponse,
 } from '../types/sends'
 
-export function getAllSends(): Promise<SendResponse[]> {
-  return apiClient.get<SendResponse[]>('/sends').then((response) => response.data)
-}
-
 export function getMySends(filter: Partial<VideoRecordFilter>): Promise<VideoRecordResponse[]> {
   return apiClient
     .get<VideoRecordResponse[]>('/sends/mine', {
