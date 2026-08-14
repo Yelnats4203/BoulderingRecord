@@ -80,12 +80,48 @@ public class SessionsControllerTests
         ];
         SessionsController controller = CreateController(new FakeSessionRepository(seed));
 
-        IActionResult result = await controller.GetAll(CancellationToken.None);
+        IActionResult result = await controller.GetAll(null, null, CancellationToken.None);
 
         OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
         IEnumerable<SessionResponse> sessions = Assert.IsAssignableFrom<IEnumerable<SessionResponse>>(okResult.Value);
         Assert.Equal(2, sessions.Count());
         Assert.All(sessions, s => Assert.Equal(TestUserId, s.UserId));
+    }
+
+    [Fact]
+    public async Task GetAll_DateRangeFilter_ReturnsSessionsWithinRange()
+    {
+        Session[] seed =
+        [
+            new Session { UserId = TestUserId, Date = new DateOnly(2026, 8, 1) },
+            new Session { UserId = TestUserId, Date = new DateOnly(2026, 8, 5) },
+            new Session { UserId = TestUserId, Date = new DateOnly(2026, 8, 10) },
+        ];
+        SessionsController controller = CreateController(new FakeSessionRepository(seed));
+
+        IActionResult result = await controller.GetAll(new DateOnly(2026, 8, 2), new DateOnly(2026, 8, 9), CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        IEnumerable<SessionResponse> sessions = Assert.IsAssignableFrom<IEnumerable<SessionResponse>>(okResult.Value);
+        SessionResponse response = Assert.Single(sessions);
+        Assert.Equal(new DateOnly(2026, 8, 5), response.Date);
+    }
+
+    [Fact]
+    public async Task GetAll_DateRangeFilter_BoundariesAreInclusive()
+    {
+        Session[] seed =
+        [
+            new Session { UserId = TestUserId, Date = new DateOnly(2026, 8, 1) },
+            new Session { UserId = TestUserId, Date = new DateOnly(2026, 8, 10) },
+        ];
+        SessionsController controller = CreateController(new FakeSessionRepository(seed));
+
+        IActionResult result = await controller.GetAll(new DateOnly(2026, 8, 1), new DateOnly(2026, 8, 10), CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        IEnumerable<SessionResponse> sessions = Assert.IsAssignableFrom<IEnumerable<SessionResponse>>(okResult.Value);
+        Assert.Equal(2, sessions.Count());
     }
 
     [Fact]

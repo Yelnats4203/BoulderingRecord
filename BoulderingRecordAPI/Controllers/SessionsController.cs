@@ -51,12 +51,12 @@ public class SessionsController(ISessionRepository sessionRepository) : Controll
     }
 
     /// <summary>
-    /// 取得目前使用者的所有抱石活動紀錄清單。
+    /// 取得目前使用者的所有抱石活動紀錄清單，可選擇性帶入起始日期與結束日期篩選區間。
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<SessionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll(DateOnly? dateFrom, DateOnly? dateTo, CancellationToken cancellationToken)
     {
         Guid? userId = GetUserId();
         if (userId is null)
@@ -64,7 +64,7 @@ public class SessionsController(ISessionRepository sessionRepository) : Controll
             return Unauthorized();
         }
 
-        List<Session> sessions = await sessionRepository.GetAllByUserIdAsync(userId.Value, cancellationToken);
+        List<Session> sessions = await sessionRepository.GetAllByUserIdAsync(userId.Value, dateFrom, dateTo, cancellationToken);
         return Ok(sessions.Select(SessionResponse.FromEntity));
     }
 
