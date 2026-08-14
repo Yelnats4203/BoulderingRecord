@@ -20,7 +20,7 @@ async function handleSubmit(): Promise<void> {
   try {
     const response = await login({ acc: acc.value, psw: psw.value })
     authStore.setSession(response.token, response.expiresAt, response.hasEditPermission)
-    await router.push({ name: 'upload' })
+    await router.push({ name: 'dashboard' })
   } catch {
     errorMessage.value = '帳號或密碼錯誤'
   } finally {

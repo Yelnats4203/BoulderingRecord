@@ -140,14 +140,9 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
 
                     b.OwnsMany("BoulderingRecordAPI.Entities.SessionGradeRecord", "GradeRecords", b1 =>
                         {
-                            b1.Property<Guid>("SessionId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<int>("Id")
+                            b1.Property<Guid>("Id")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
-
-                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+                                .HasColumnType("uniqueidentifier");
 
                             b1.Property<int>("CompletedCount")
                                 .HasColumnType("int");
@@ -155,10 +150,15 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                             b1.Property<int>("Grade")
                                 .HasColumnType("int");
 
+                            b1.Property<Guid>("SessionId")
+                                .HasColumnType("uniqueidentifier");
+
                             b1.Property<int>("UncompletedCount")
                                 .HasColumnType("int");
 
-                            b1.HasKey("SessionId", "Id");
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("SessionId");
 
                             b1.ToTable("SessionGradeRecords", (string)null);
 

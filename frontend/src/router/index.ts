@@ -7,6 +7,8 @@ import VideoRecordsView from '../views/VideoRecordsView.vue'
 import CreateUserView from '../views/CreateUserView.vue'
 import UserListView from '../views/UserListView.vue'
 import ChangePasswordView from '../views/ChangePasswordView.vue'
+import DashboardView from '../views/DashboardView.vue'
+import CreateSessionView from '../views/CreateSessionView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -16,6 +18,13 @@ const router = createRouter({
       path: '/',
       component: AppLayout,
       children: [
+        { path: 'dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true } },
+        {
+          path: 'sessions/create',
+          name: 'createSession',
+          component: CreateSessionView,
+          meta: { requiresAuth: true },
+        },
         { path: 'upload', name: 'upload', component: UploadView, meta: { requiresAuth: true } },
         { path: 'videos', name: 'videos', component: VideoRecordsView, meta: { requiresAuth: true } },
         {
@@ -36,7 +45,7 @@ const router = createRouter({
           component: UserListView,
           meta: { requiresAuth: true, requiresEditPermission: true },
         },
-        { path: '', redirect: '/upload' },
+        { path: '', redirect: '/dashboard' },
       ],
     },
   ],
@@ -50,11 +59,11 @@ router.beforeEach((to: RouteLocationNormalizedGeneric) => {
   }
 
   if (to.meta.requiresEditPermission && !authStore.hasEditPermission) {
-    return { name: 'upload' }
+    return { name: 'dashboard' }
   }
 
   if (to.name === 'login' && authStore.isAuthenticated) {
-    return { name: 'upload' }
+    return { name: 'dashboard' }
   }
 
   return true

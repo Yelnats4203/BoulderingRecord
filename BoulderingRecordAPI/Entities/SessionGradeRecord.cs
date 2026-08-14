@@ -6,6 +6,11 @@ namespace BoulderingRecordAPI.Entities;
 public class SessionGradeRecord
 {
     /// <summary>
+    /// 紀錄唯一識別碼。
+    /// </summary>
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+
+    /// <summary>
     /// V-Scale 難度級數（例如 3 代表 V3）。
     /// </summary>
     public int Grade { get; set; }

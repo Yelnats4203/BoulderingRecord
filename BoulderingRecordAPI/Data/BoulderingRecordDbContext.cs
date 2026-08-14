@@ -52,6 +52,7 @@ public class BoulderingRecordDbContext(DbContextOptions options)
             {
                 gradeRecord.ToTable("SessionGradeRecords");
                 gradeRecord.WithOwner().HasForeignKey("SessionId");
+                gradeRecord.HasKey(g => g.Id);
                 gradeRecord.Property(g => g.Grade).IsRequired();
                 gradeRecord.Property(g => g.CompletedCount).IsRequired();
                 gradeRecord.Property(g => g.UncompletedCount).IsRequired();
