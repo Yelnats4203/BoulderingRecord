@@ -1,0 +1,9 @@
+﻿[2026-08-17 13:47:10] 我想部屬一個可以面試用的DEMO環境，目前考慮前端用vercel，後端用azure，皆為免費層，請問有其他建議嗎？
+[2026-08-17 15:07:10] 為什用sqlite會比較好？
+[2026-08-17 15:12:27] 我希望嘗試建立Azure SQL Database
+[2026-08-17 15:13:25] 我仍希望嘗試建立Azure SQL Database。我想問問Azure API的建立流程
+[2026-08-17 15:22:18] 如果我要在vercel和azure建立服務，專案裡面的機敏資訊，包含appsetting、包含前端要打API的路徑、後端要限定的前端domain，基於這個repo是在git上公開的，有需要另外拉一個隱藏的fork並填入這些資訊嗎
+[2026-08-17 15:41:14] 我要部屬前端到vercel、API到azure，DB使用azure database
+[2026-08-17 16:12:20] 繼續進行
+[2026-08-17 16:51:21] 可以先部屬前端嗎
+[2026-08-17 17:02:01] 檢查 boulderingrecord-api-q3p47 這個 App Service 的狀態是否已從 QuotaExceeded 恢復正常，若已恢復則重新部署程式碼、測試 /Auth/login 端點，並繼續執行計畫中的步驟7（套用 EF Core migration 到 Azure SQL）

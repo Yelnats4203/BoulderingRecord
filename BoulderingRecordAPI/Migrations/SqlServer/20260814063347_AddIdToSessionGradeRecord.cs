@@ -15,14 +15,16 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                 name: "PK_SessionGradeRecords",
                 table: "SessionGradeRecords");
 
-            migrationBuilder.AlterColumn<Guid>(
+            migrationBuilder.DropColumn(
+                name: "Id",
+                table: "SessionGradeRecords");
+
+            migrationBuilder.AddColumn<Guid>(
                 name: "Id",
                 table: "SessionGradeRecords",
                 type: "uniqueidentifier",
                 nullable: false,
-                oldClrType: typeof(int),
-                oldType: "int")
-                .OldAnnotation("SqlServer:Identity", "1, 1");
+                defaultValueSql: "NEWID()");
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_SessionGradeRecords",
@@ -46,13 +48,15 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                 name: "IX_SessionGradeRecords_SessionId",
                 table: "SessionGradeRecords");
 
-            migrationBuilder.AlterColumn<int>(
+            migrationBuilder.DropColumn(
+                name: "Id",
+                table: "SessionGradeRecords");
+
+            migrationBuilder.AddColumn<int>(
                 name: "Id",
                 table: "SessionGradeRecords",
                 type: "int",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier")
+                nullable: false)
                 .Annotation("SqlServer:Identity", "1, 1");
 
             migrationBuilder.AddPrimaryKey(

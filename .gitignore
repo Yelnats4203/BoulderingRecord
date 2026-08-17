@@ -40,6 +40,7 @@ Thumbs.db
 
 ## 本機測試用機密（不進版控，見 CLAUDE.md 版控安全檢查）
 CloudinaryKeys.txt
+AzureSqlKeys.txt
 
 ## 弱點掃描進度紀錄（記載未修補漏洞細節，公開 repo 不可進版控）
 SECURITY_SCAN_STATUS.md
