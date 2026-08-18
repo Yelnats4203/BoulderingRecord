@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { createSend, getUploadAuthorization, uploadVideoToCloudinary } from '../api/sends'
+import { compressVideo, VideoCompressionError } from '../utils/videoCompression'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 
 const videoFile = ref<File | null>(null)
 const gymName = ref<string>('')
 const difficulty = ref<string>('')
 const note = ref<string>('')
+const isCompressing = ref<boolean>(false)
+const compressionProgress = ref<number>(0)
 const isUploading = ref<boolean>(false)
 const uploadErrorMessage = ref<string>('')
 const uploadSuccessMessage = ref<string>('')
@@ -24,10 +27,29 @@ async function handleUpload(): Promise<void> {
 
   uploadErrorMessage.value = ''
   uploadSuccessMessage.value = ''
+  isCompressing.value = true
+  compressionProgress.value = 0
+
+  let compressedFile: File
+  try {
+    compressedFile = await compressVideo(videoFile.value, (ratio) => {
+      compressionProgress.value = ratio
+    })
+  } catch (error) {
+    if (error instanceof VideoCompressionError && error.code === 'OUTPUT_TOO_LARGE') {
+      uploadErrorMessage.value = '影片壓縮後仍超過 25MB，請改用較短或較低畫質的影片再試一次。'
+    } else {
+      uploadErrorMessage.value = '影片壓縮失敗，請確認影片格式後再試一次。'
+    }
+    isCompressing.value = false
+    return
+  }
+  isCompressing.value = false
+
   isUploading.value = true
   try {
     const auth = await getUploadAuthorization()
-    await uploadVideoToCloudinary(videoFile.value, auth)
+    await uploadVideoToCloudinary(compressedFile, auth)
     await createSend({
       sendId: auth.sendId,
       gymName: gymName.value,
@@ -79,9 +101,16 @@ async function handleUpload(): Promise<void> {
         <textarea id="note" v-model="note"></textarea>
       </div>
 
-      <button class="btn-primary" :class="{ 'btn-loading': isUploading }" type="submit" :disabled="isUploading">
-        <LoadingSpinner v-if="isUploading" :size="16" />
-        <span>{{ isUploading ? '上傳中...' : '上傳' }}</span>
+      <button
+        class="btn-primary"
+        :class="{ 'btn-loading': isCompressing || isUploading }"
+        type="submit"
+        :disabled="isCompressing || isUploading"
+      >
+        <LoadingSpinner v-if="isCompressing || isUploading" :size="16" />
+        <span v-if="isCompressing">壓縮中{{ compressionProgress > 0 ? `（${Math.round(compressionProgress * 100)}%）` : '...' }}</span>
+        <span v-else-if="isUploading">上傳中...</span>
+        <span v-else>上傳</span>
       </button>
     </form>
   </div>

@@ -7,3 +7,4 @@
 [2026-08-17 16:12:20] 繼續進行
 [2026-08-17 16:51:21] 可以先部屬前端嗎
 [2026-08-17 17:02:01] 檢查 boulderingrecord-api-q3p47 這個 App Service 的狀態是否已從 QuotaExceeded 恢復正常，若已恢復則重新部署程式碼、測試 /Auth/login 端點，並繼續執行計畫中的步驟7（套用 EF Core migration 到 Azure SQL）
+[2026-08-17 17:37:02] 已驗證完成
