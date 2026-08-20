@@ -35,7 +35,9 @@ Options/         # 可設定選項（JwtSettings、CloudinaryOptions）
 
 - 採用 **JWT**，登入成功後由 `TokenService` 產生 token，並存入 `IActiveTokenStore`（目前實作為 `MemoryActiveTokenStore`，以 `IMemoryCache` 為底層）。
 - **同一帳號僅允許一組有效 token**：重新登入或換發 token 時，快取中的舊 token 會被新 token 取代，舊 token 隨即失效（防止重複登入）。
-- 需要驗證的端點加上 `[TokenAuthorize]`，交由 `TokenAuthorizationFilter` 驗證 `Authorization: Bearer <token>` 標頭，並檢查 token 是否與快取中的 active token 一致。
+- 需要驗證的端點加上 `[TokenAuthorize]`，交由 `TokenAuthorizationFilter` 驗證 `Authorization: Bearer <token>` 標頭，並檢查 token 是否與快取中的 active token 一致。驗證失敗時一律回應 401，並附上 body `{ "reason": "SessionExpired" | "DuplicateLogin" }`（`UnauthorizedErrorResponse`）供前端顯示對應提示：
+  - `SessionExpired`：未帶 token、token 已過期或無效，須重新登入。
+  - `DuplicateLogin`：token 本身簽章有效，但與快取中的 active token 不一致，代表已被其他裝置的新登入取代。
 - 相關設定：`Jwt:Key`、`Jwt:Issuer`、`Jwt:Audience`、`Jwt:AccessTokenExpiresMinutes`。
 
 ## API 端點

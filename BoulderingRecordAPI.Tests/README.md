@@ -77,8 +77,8 @@ dotnet test
 
 | 測試案例 | 說明 |
 | --- | --- |
-| `OnAuthorizationAsync_NoAuthorizationHeader_ReturnsUnauthorized` | 請求未帶 `Authorization` 標頭時，過濾器回應 401。 |
-| `OnAuthorizationAsync_ExpiredToken_ReturnsUnauthorized` | 帶入已過期的 token 時，回應 401。 |
-| `OnAuthorizationAsync_TamperedToken_ReturnsUnauthorized` | 帶入被竄改（簽章不符）的 token 時，回應 401。 |
-| `OnAuthorizationAsync_ValidTokenNotMatchingCache_ReturnsUnauthorized` | token 本身有效，但與快取中的 active token 不一致（已被新登入取代）時，回應 401 且不設定 `HttpContext.User`。 |
+| `OnAuthorizationAsync_NoAuthorizationHeader_ReturnsUnauthorizedWithSessionExpiredReason` | 請求未帶 `Authorization` 標頭時，回應 401 並附上 `UnauthorizedErrorResponse { Reason = SessionExpired }`。 |
+| `OnAuthorizationAsync_ExpiredToken_ReturnsUnauthorizedWithSessionExpiredReason` | 帶入已過期的 token 時，回應 401 並附上 `UnauthorizedErrorResponse { Reason = SessionExpired }`。 |
+| `OnAuthorizationAsync_TamperedToken_ReturnsUnauthorizedWithSessionExpiredReason` | 帶入被竄改（簽章不符）的 token 時，回應 401 並附上 `UnauthorizedErrorResponse { Reason = SessionExpired }`。 |
+| `OnAuthorizationAsync_ValidTokenNotMatchingCache_ReturnsUnauthorizedWithDuplicateLoginReason` | token 本身有效，但與快取中的 active token 不一致（已被新登入取代）時，回應 401 並附上 `UnauthorizedErrorResponse { Reason = DuplicateLogin }`，且不設定 `HttpContext.User`。 |
 | `OnAuthorizationAsync_ValidTokenMatchingCache_SetsHttpContextUser` | token 有效且與快取中的 active token 一致時，放行並將使用者資訊設定到 `HttpContext.User`。 |

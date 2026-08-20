@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using BoulderingRecordAPI.Models.Auth;
 using BoulderingRecordAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -14,7 +15,7 @@ public class TokenAuthorizationFilter(ITokenService tokenService, IActiveTokenSt
 
         if (string.IsNullOrEmpty(header) || !header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
-            context.Result = new UnauthorizedResult();
+            context.Result = new UnauthorizedObjectResult(new UnauthorizedErrorResponse(UnauthorizedReason.SessionExpired));
             return Task.CompletedTask;
         }
 
@@ -23,21 +24,21 @@ public class TokenAuthorizationFilter(ITokenService tokenService, IActiveTokenSt
         ClaimsPrincipal? principal = tokenService.ValidateToken(token);
         if (principal is null)
         {
-            context.Result = new UnauthorizedResult();
+            context.Result = new UnauthorizedObjectResult(new UnauthorizedErrorResponse(UnauthorizedReason.SessionExpired));
             return Task.CompletedTask;
         }
 
         string? acc = principal.FindFirst(TokenClaimTypes.Acc)?.Value;
         if (string.IsNullOrEmpty(acc))
         {
-            context.Result = new UnauthorizedResult();
+            context.Result = new UnauthorizedObjectResult(new UnauthorizedErrorResponse(UnauthorizedReason.SessionExpired));
             return Task.CompletedTask;
         }
 
         if (!tokenStore.TryGetActiveToken(acc, out string? activeToken) ||
             !string.Equals(activeToken, token, StringComparison.Ordinal))
         {
-            context.Result = new UnauthorizedResult();
+            context.Result = new UnauthorizedObjectResult(new UnauthorizedErrorResponse(UnauthorizedReason.DuplicateLogin));
             return Task.CompletedTask;
         }
 

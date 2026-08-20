@@ -1,9 +1,11 @@
 using BoulderingRecordAPI.Entities;
 using BoulderingRecordAPI.Filters;
+using BoulderingRecordAPI.Models.Auth;
 using BoulderingRecordAPI.Options;
 using BoulderingRecordAPI.Services;
 using BoulderingRecordAPI.Tests.Fakes;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -12,6 +14,13 @@ namespace BoulderingRecordAPI.Tests.Filters;
 public class TokenAuthorizationFilterTests
 {
     private const string TestAcc = "climber01";
+
+    private static void AssertUnauthorizedWithReason(Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext context, UnauthorizedReason expectedReason)
+    {
+        UnauthorizedObjectResult result = Assert.IsType<UnauthorizedObjectResult>(context.Result);
+        UnauthorizedErrorResponse errorResponse = Assert.IsType<UnauthorizedErrorResponse>(result.Value);
+        Assert.Equal(expectedReason, errorResponse.Reason);
+    }
 
     private static ITokenService CreateTokenService(int accessTokenExpiresMinutes = 120) => new TokenService(Microsoft.Extensions.Options.Options.Create(new JwtSettings
     {
@@ -40,18 +49,18 @@ public class TokenAuthorizationFilterTests
     }
 
     [Fact]
-    public async Task OnAuthorizationAsync_NoAuthorizationHeader_ReturnsUnauthorized()
+    public async Task OnAuthorizationAsync_NoAuthorizationHeader_ReturnsUnauthorizedWithSessionExpiredReason()
     {
         TokenAuthorizationFilter filter = new TokenAuthorizationFilter(CreateTokenService(), new FakeActiveTokenStore());
         AuthorizationFilterContext context = CreateContext(authorizationHeader: null);
 
         await filter.OnAuthorizationAsync(context);
 
-        Assert.IsType<Microsoft.AspNetCore.Mvc.UnauthorizedResult>(context.Result);
+        AssertUnauthorizedWithReason(context, UnauthorizedReason.SessionExpired);
     }
 
     [Fact]
-    public async Task OnAuthorizationAsync_ExpiredToken_ReturnsUnauthorized()
+    public async Task OnAuthorizationAsync_ExpiredToken_ReturnsUnauthorizedWithSessionExpiredReason()
     {
         ITokenService tokenService = CreateTokenService(accessTokenExpiresMinutes: -10);
         FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
@@ -63,11 +72,11 @@ public class TokenAuthorizationFilterTests
 
         await filter.OnAuthorizationAsync(context);
 
-        Assert.IsType<Microsoft.AspNetCore.Mvc.UnauthorizedResult>(context.Result);
+        AssertUnauthorizedWithReason(context, UnauthorizedReason.SessionExpired);
     }
 
     [Fact]
-    public async Task OnAuthorizationAsync_TamperedToken_ReturnsUnauthorized()
+    public async Task OnAuthorizationAsync_TamperedToken_ReturnsUnauthorizedWithSessionExpiredReason()
     {
         ITokenService tokenService = CreateTokenService();
         FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
@@ -80,11 +89,11 @@ public class TokenAuthorizationFilterTests
 
         await filter.OnAuthorizationAsync(context);
 
-        Assert.IsType<Microsoft.AspNetCore.Mvc.UnauthorizedResult>(context.Result);
+        AssertUnauthorizedWithReason(context, UnauthorizedReason.SessionExpired);
     }
 
     [Fact]
-    public async Task OnAuthorizationAsync_ValidTokenNotMatchingCache_ReturnsUnauthorized()
+    public async Task OnAuthorizationAsync_ValidTokenNotMatchingCache_ReturnsUnauthorizedWithDuplicateLoginReason()
     {
         ITokenService tokenService = CreateTokenService();
         FakeActiveTokenStore tokenStore = new FakeActiveTokenStore();
@@ -98,7 +107,7 @@ public class TokenAuthorizationFilterTests
 
         await filter.OnAuthorizationAsync(context);
 
-        Assert.IsType<Microsoft.AspNetCore.Mvc.UnauthorizedResult>(context.Result);
+        AssertUnauthorizedWithReason(context, UnauthorizedReason.DuplicateLogin);
         Assert.Null(context.HttpContext.User.Identity?.Name);
     }
 

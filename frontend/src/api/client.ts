@@ -14,14 +14,26 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config
 })
 
+type UnauthorizedReason = 'SessionExpired' | 'DuplicateLogin'
+
+interface UnauthorizedErrorResponse {
+  reason?: UnauthorizedReason
+}
+
+const loginQueryReasonByUnauthorizedReason: Record<UnauthorizedReason, string> = {
+  SessionExpired: 'session-expired',
+  DuplicateLogin: 'duplicate-login',
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  (error: AxiosError<UnauthorizedErrorResponse>) => {
     if (error.response?.status === 401) {
       const authStore = useAuthStore()
+      const reason: UnauthorizedReason = error.response.data?.reason ?? 'SessionExpired'
       authStore.clearSession()
       if (router.currentRoute.value.name !== 'login') {
-        router.push({ name: 'login' })
+        router.push({ name: 'login', query: { reason: loginQueryReasonByUnauthorizedReason[reason] } })
       }
     }
     return Promise.reject(error)

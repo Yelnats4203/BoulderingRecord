@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { login } from '../api/auth'
 import { useAuthStore } from '../stores/auth'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
@@ -8,11 +8,25 @@ import PasswordInput from '../components/PasswordInput.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 const acc = ref<string>('')
 const psw = ref<string>('')
 const errorMessage = ref<string>('')
 const isSubmitting = ref<boolean>(false)
+
+const loginTimeoutMessagesByReason: Record<string, string> = {
+  'duplicate-login': '此帳號已在其他裝置重新登入，您已被登出。',
+  'session-expired': '登入已逾時，請重新登入。',
+}
+
+onMounted(() => {
+  const reason: string | null = typeof route.query.reason === 'string' ? route.query.reason : null
+  if (reason && reason in loginTimeoutMessagesByReason) {
+    errorMessage.value = loginTimeoutMessagesByReason[reason]
+    router.replace({ name: 'login' })
+  }
+})
 
 async function handleSubmit(): Promise<void> {
   errorMessage.value = ''
