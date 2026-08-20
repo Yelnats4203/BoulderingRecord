@@ -1,9 +1,20 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { fetchFile, toBlobURL } from '@ffmpeg/util'
 
-const MAX_OUTPUT_SIZE_BYTES: number = 25 * 1024 * 1024
+export const MAX_OUTPUT_SIZE_BYTES: number = 25 * 1024 * 1024
 const FFMPEG_CORE_BASE_URL: string = '/ffmpeg'
 const OUTPUT_FILENAME: string = 'output.mp4'
+const DEFAULT_CRF: number = 28
+const DEFAULT_LONG_EDGE: number = 1280
+const DEFAULT_PRESET: string = 'veryfast'
+
+export interface CompressVideoOptions {
+  crf?: number
+  longEdge?: number
+  preset?: string
+  fps?: number
+  enforceSizeLimit?: boolean
+}
 
 export type VideoCompressionErrorCode = 'COMPRESSION_FAILED' | 'OUTPUT_TOO_LARGE'
 
@@ -52,13 +63,23 @@ function inputFileName(file: File): string {
   return `input${extension}`
 }
 
-function compressedFileName(file: File): string {
+export function compressedFileName(file: File): string {
   const dotIndex: number = file.name.lastIndexOf('.')
   const baseName: string = dotIndex >= 0 ? file.name.slice(0, dotIndex) : file.name
   return `${baseName}-compressed.mp4`
 }
 
-export async function compressVideo(file: File, onProgress?: (ratio: number) => void): Promise<File> {
+export async function compressVideo(
+  file: File,
+  onProgress?: (ratio: number) => void,
+  options?: CompressVideoOptions,
+): Promise<File> {
+  const crf: number = options?.crf ?? DEFAULT_CRF
+  const longEdge: number = options?.longEdge ?? DEFAULT_LONG_EDGE
+  const preset: string = options?.preset ?? DEFAULT_PRESET
+  const fps: number | undefined = options?.fps
+  const enforceSizeLimit: boolean = options?.enforceSizeLimit ?? true
+
   let ffmpeg: FFmpeg
   try {
     ffmpeg = await getFFmpeg()
@@ -78,17 +99,22 @@ export async function compressVideo(file: File, onProgress?: (ratio: number) => 
   try {
     await ffmpeg.writeFile(input, await fetchFile(file))
 
-    const exitCode: number = await ffmpeg.exec([
+    const execArgs: string[] = [
       '-i',
       input,
       '-vf',
-      "scale='if(gt(iw,ih),min(1280,iw),-2)':'if(gt(iw,ih),-2,min(1280,ih))'",
+      `scale='if(gt(iw,ih),min(${longEdge},iw),-2)':'if(gt(iw,ih),-2,min(${longEdge},ih))'`,
+    ]
+    if (fps !== undefined) {
+      execArgs.push('-r', String(fps))
+    }
+    execArgs.push(
       '-c:v',
       'libx264',
       '-preset',
-      'veryfast',
+      preset,
       '-crf',
-      '28',
+      String(crf),
       '-c:a',
       'aac',
       '-b:a',
@@ -96,7 +122,9 @@ export async function compressVideo(file: File, onProgress?: (ratio: number) => 
       '-movflags',
       '+faststart',
       OUTPUT_FILENAME,
-    ])
+    )
+
+    const exitCode: number = await ffmpeg.exec(execArgs)
 
     if (exitCode !== 0) {
       throw new VideoCompressionError('COMPRESSION_FAILED', '影片壓縮失敗，請確認影片格式後再試一次')
@@ -107,7 +135,7 @@ export async function compressVideo(file: File, onProgress?: (ratio: number) => 
     await ffmpeg.deleteFile(input).catch((): void => undefined)
     await ffmpeg.deleteFile(OUTPUT_FILENAME).catch((): void => undefined)
 
-    if (data.byteLength > MAX_OUTPUT_SIZE_BYTES) {
+    if (enforceSizeLimit && data.byteLength > MAX_OUTPUT_SIZE_BYTES) {
       throw new VideoCompressionError('OUTPUT_TOO_LARGE', '壓縮後檔案仍超過 25MB 上限')
     }
 

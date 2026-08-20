@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { createSend, getUploadAuthorization, uploadVideoToCloudinary } from '../api/sends'
-import { compressVideo, VideoCompressionError } from '../utils/videoCompression'
+import { VideoCompressionError } from '../utils/videoCompression'
+import { compressVideoWebCodecs } from '../utils/videoCompressionWebCodecs'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 
 const videoFile = ref<File | null>(null)
@@ -32,7 +33,7 @@ async function handleUpload(): Promise<void> {
 
   let compressedFile: File
   try {
-    compressedFile = await compressVideo(videoFile.value, (ratio) => {
+    compressedFile = await compressVideoWebCodecs(videoFile.value, (ratio) => {
       compressionProgress.value = ratio
     })
   } catch (error) {
