@@ -37,7 +37,7 @@ public class SendsController(
     }
 
     /// <summary>
-    /// 建立完攀紀錄，須於影片已直接上傳至 Cloudinary 後呼叫；上傳者與上傳時間由後端指派。
+    /// 建立完攀紀錄，須於影片已直接上傳至 Cloudinary 後呼叫；上傳者由後端指派，上傳日期若未提供則預設為今日。
     /// </summary>
     [TokenAuthorize]
     [HttpPost]
@@ -67,7 +67,7 @@ public class SendsController(
             Difficulty = request.Difficulty,
             Note = request.Note,
             UploaderId = uploaderId.Value,
-            UploadedAt = DateTimeOffset.UtcNow,
+            UploadedAt = request.UploadedAt ?? DateOnly.FromDateTime(DateTime.UtcNow),
             VideoPublicId = publicId,
         };
 
@@ -78,7 +78,7 @@ public class SendsController(
     }
 
     /// <summary>
-    /// 依岩館名稱、上傳時間區間、難度區間，取得目前登入使用者自己上傳的影片紀錄清單。
+    /// 依岩館名稱、上傳日期區間、難度區間，取得目前登入使用者自己上傳的影片紀錄清單。
     /// </summary>
     [TokenAuthorize]
     [HttpGet("mine")]
@@ -86,8 +86,8 @@ public class SendsController(
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetMine(
         string? gymName,
-        DateTimeOffset? uploadedFrom,
-        DateTimeOffset? uploadedTo,
+        DateOnly? uploadedFrom,
+        DateOnly? uploadedTo,
         int? minDifficulty,
         int? maxDifficulty,
         CancellationToken cancellationToken)
@@ -104,7 +104,7 @@ public class SendsController(
     }
 
     /// <summary>
-    /// 編輯完攀紀錄的上傳時間、岩館、難度、備註；僅上傳者本人可編輯，上傳時間為必填。
+    /// 編輯完攀紀錄的上傳日期、岩館、難度、備註；僅上傳者本人可編輯，上傳日期為必填。
     /// </summary>
     [TokenAuthorize]
     [HttpPut("{id:guid}")]
@@ -122,7 +122,7 @@ public class SendsController(
 
         if (request.UploadedAt == default)
         {
-            return BadRequest("上傳時間為必填。");
+            return BadRequest("上傳日期為必填。");
         }
 
         Send? send = await sendRepository.GetByIdAsync(id, cancellationToken);

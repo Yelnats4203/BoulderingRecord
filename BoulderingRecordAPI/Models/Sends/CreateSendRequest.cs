@@ -7,4 +7,5 @@ namespace BoulderingRecordAPI.Models.Sends;
 /// <param name="GymName">岩館名稱。</param>
 /// <param name="Difficulty">攀岩難度。</param>
 /// <param name="Note">備註。</param>
-public record CreateSendRequest(Guid SendId, string? GymName, int? Difficulty, string? Note);
+/// <param name="UploadedAt">影片上傳日期，未提供時預設為今日。</param>
+public record CreateSendRequest(Guid SendId, string? GymName, int? Difficulty, string? Note, DateOnly? UploadedAt = null);

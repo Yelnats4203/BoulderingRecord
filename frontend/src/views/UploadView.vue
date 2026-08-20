@@ -5,7 +5,16 @@ import { VideoCompressionError } from '../utils/videoCompression'
 import { compressVideoWebCodecs } from '../utils/videoCompressionWebCodecs'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 
+function todayDateOnly(): string {
+  const now = new Date()
+  const year = String(now.getFullYear())
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const videoFile = ref<File | null>(null)
+const uploadedAt = ref<string>(todayDateOnly())
 const gymName = ref<string>('')
 const difficulty = ref<string>('')
 const note = ref<string>('')
@@ -56,9 +65,11 @@ async function handleUpload(): Promise<void> {
       gymName: gymName.value,
       difficulty: difficulty.value,
       note: note.value,
+      uploadedAt: uploadedAt.value,
     })
     uploadSuccessMessage.value = '上傳成功。'
     videoFile.value = null
+    uploadedAt.value = todayDateOnly()
     gymName.value = ''
     difficulty.value = ''
     note.value = ''
@@ -85,6 +96,11 @@ async function handleUpload(): Promise<void> {
       <div class="form-field">
         <label for="video">影片檔案</label>
         <input id="video" type="file" accept="video/mp4,video/quicktime,.mp4,.mov" @change="handleFileChange" required />
+      </div>
+
+      <div class="form-field">
+        <label for="uploadedAt">日期</label>
+        <input id="uploadedAt" v-model="uploadedAt" type="date" />
       </div>
 
       <div class="form-field">

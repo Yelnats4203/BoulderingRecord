@@ -73,7 +73,36 @@ public class SendsControllerTests
         Assert.Equal(5, response.Difficulty);
         Assert.Equal("備註", response.Note);
         Assert.Equal(TestUploaderId, response.UploaderId);
-        Assert.True(response.UploadedAt <= DateTimeOffset.UtcNow);
+        Assert.True(response.UploadedAt <= DateOnly.FromDateTime(DateTime.UtcNow));
+    }
+
+    [Fact]
+    public async Task Upload_NoUploadedAtInRequest_DefaultsToToday()
+    {
+        SendsController controller = CreateController();
+
+        IActionResult result = await controller.Upload(
+            new CreateSendRequest(Guid.CreateVersion7(), "測試岩館", 5, "備註"),
+            CancellationToken.None);
+
+        ObjectResult created = Assert.IsType<ObjectResult>(result);
+        SendResponse response = Assert.IsType<SendResponse>(created.Value);
+        Assert.Equal(DateOnly.FromDateTime(DateTime.UtcNow), response.UploadedAt);
+    }
+
+    [Fact]
+    public async Task Upload_UploadedAtInRequest_UsesProvidedDate()
+    {
+        SendsController controller = CreateController();
+        DateOnly providedDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-3);
+
+        IActionResult result = await controller.Upload(
+            new CreateSendRequest(Guid.CreateVersion7(), "測試岩館", 5, "備註", providedDate),
+            CancellationToken.None);
+
+        ObjectResult created = Assert.IsType<ObjectResult>(result);
+        SendResponse response = Assert.IsType<SendResponse>(created.Value);
+        Assert.Equal(providedDate, response.UploadedAt);
     }
 
     [Fact]
@@ -115,8 +144,8 @@ public class SendsControllerTests
     {
         Send[] seed = new[]
         {
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a" },
-            new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "b" },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" },
+            new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "b" },
         };
         SendsController controller = CreateController(new FakeSendRepository(seed));
 
@@ -134,8 +163,8 @@ public class SendsControllerTests
     {
         Send[] seed = new[]
         {
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a", GymName = "True Rock 岩究所" },
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "b", GymName = "彩岩攀岩館" },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a", GymName = "True Rock 岩究所" },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "b", GymName = "彩岩攀岩館" },
         };
         SendsController controller = CreateController(new FakeSendRepository(seed));
 
@@ -150,7 +179,7 @@ public class SendsControllerTests
     [Fact]
     public async Task GetMine_UploadedAtRangeFilter_ReturnsSendsWithinRange()
     {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateOnly now = DateOnly.FromDateTime(DateTime.UtcNow);
         Send[] seed = new[]
         {
             new Send { UploaderId = TestUploaderId, UploadedAt = now.AddDays(-10), VideoPublicId = "a" },
@@ -171,9 +200,9 @@ public class SendsControllerTests
     {
         Send[] seed = new[]
         {
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a", Difficulty = 2 },
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "b", Difficulty = 5 },
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "c", Difficulty = 8 },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a", Difficulty = 2 },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "b", Difficulty = 5 },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "c", Difficulty = 8 },
         };
         SendsController controller = CreateController(new FakeSendRepository(seed));
 
@@ -190,7 +219,7 @@ public class SendsControllerTests
     {
         Send[] seed = new[]
         {
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a", GymName = "彩岩攀岩館" },
+            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a", GymName = "彩岩攀岩館" },
         };
         SendsController controller = CreateController(new FakeSendRepository(seed));
 
@@ -207,14 +236,14 @@ public class SendsControllerTests
         Send send = new Send
         {
             UploaderId = TestUploaderId,
-            UploadedAt = DateTimeOffset.UtcNow,
+            UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow),
             VideoPublicId = "a",
             GymName = "舊岩館",
             Difficulty = 3,
             Note = "舊備註",
         };
         SendsController controller = CreateController(new FakeSendRepository([send]));
-        DateTimeOffset newUploadedAt = DateTimeOffset.UtcNow.AddDays(-1);
+        DateOnly newUploadedAt = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
 
         IActionResult result = await controller.Update(
             send.Id,
@@ -232,7 +261,7 @@ public class SendsControllerTests
     [Fact]
     public async Task Update_UploadedAtDefault_ReturnsBadRequest()
     {
-        Send send = new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a" };
+        Send send = new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" };
         SendsController controller = CreateController(new FakeSendRepository([send]));
 
         IActionResult result = await controller.Update(
@@ -246,12 +275,12 @@ public class SendsControllerTests
     [Fact]
     public async Task Update_NotOwner_ReturnsNotFound()
     {
-        Send send = new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a" };
+        Send send = new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" };
         SendsController controller = CreateController(new FakeSendRepository([send]));
 
         IActionResult result = await controller.Update(
             send.Id,
-            new UpdateSendRequest(DateTimeOffset.UtcNow, "新岩館", 7, "新備註"),
+            new UpdateSendRequest(DateOnly.FromDateTime(DateTime.UtcNow), "新岩館", 7, "新備註"),
             CancellationToken.None);
 
         Assert.IsType<NotFoundResult>(result);
@@ -264,7 +293,7 @@ public class SendsControllerTests
 
         IActionResult result = await controller.Update(
             Guid.CreateVersion7(),
-            new UpdateSendRequest(DateTimeOffset.UtcNow, "新岩館", 7, "新備註"),
+            new UpdateSendRequest(DateOnly.FromDateTime(DateTime.UtcNow), "新岩館", 7, "新備註"),
             CancellationToken.None);
 
         Assert.IsType<UnauthorizedResult>(result);
@@ -273,7 +302,7 @@ public class SendsControllerTests
     [Fact]
     public async Task Delete_Owner_DeletesRecordAndCloudinaryResource()
     {
-        Send send = new Send { UploaderId = TestUploaderId, UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "sends/owner/video" };
+        Send send = new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "sends/owner/video" };
         FakeSendRepository repository = new FakeSendRepository([send]);
         FakeVideoStorageService videoStorageService = new FakeVideoStorageService();
         SendsController controller = CreateController(repository, videoStorageService);
@@ -289,7 +318,7 @@ public class SendsControllerTests
     [Fact]
     public async Task Delete_NotOwner_ReturnsNotFound()
     {
-        Send send = new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateTimeOffset.UtcNow, VideoPublicId = "a" };
+        Send send = new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" };
         SendsController controller = CreateController(new FakeSendRepository([send]));
 
         IActionResult result = await controller.Delete(send.Id, CancellationToken.None);
@@ -323,7 +352,7 @@ public class SendsControllerTests
         Send send = new Send
         {
             UploaderId = Guid.CreateVersion7(),
-            UploadedAt = DateTimeOffset.UtcNow,
+            UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow),
             VideoPublicId = "someone-else",
             Visibility = SendVisibility.Private,
         };
@@ -340,7 +369,7 @@ public class SendsControllerTests
         Send send = new Send
         {
             UploaderId = TestUploaderId,
-            UploadedAt = DateTimeOffset.UtcNow,
+            UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow),
             VideoPublicId = "sends/owner/video",
             Visibility = SendVisibility.Private,
         };
@@ -361,7 +390,7 @@ public class SendsControllerTests
         Send send = new Send
         {
             UploaderId = Guid.CreateVersion7(),
-            UploadedAt = DateTimeOffset.UtcNow,
+            UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow),
             VideoPublicId = "sends/someone-else/video",
             Visibility = visibility,
         };

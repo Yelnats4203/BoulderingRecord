@@ -15,8 +15,8 @@ export function getMySends(filter: Partial<VideoRecordFilter>): Promise<VideoRec
     .get<VideoRecordResponse[]>('/sends/mine', {
       params: {
         gymName: filter.gymName || undefined,
-        uploadedFrom: filter.uploadedFrom ? `${filter.uploadedFrom}T00:00:00` : undefined,
-        uploadedTo: filter.uploadedTo ? `${filter.uploadedTo}T23:59:59.999` : undefined,
+        uploadedFrom: filter.uploadedFrom || undefined,
+        uploadedTo: filter.uploadedTo || undefined,
         minDifficulty: filter.minDifficulty || undefined,
         maxDifficulty: filter.maxDifficulty || undefined,
       },
@@ -50,6 +50,7 @@ export function createSend(payload: CreateSendPayload): Promise<SendResponse> {
       gymName: payload.gymName || null,
       difficulty: payload.difficulty ? Number(payload.difficulty) : null,
       note: payload.note || null,
+      uploadedAt: payload.uploadedAt || undefined,
     })
     .then((response) => response.data)
 }

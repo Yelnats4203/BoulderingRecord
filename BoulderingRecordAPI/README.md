@@ -55,11 +55,11 @@ Options/         # 可設定選項（JwtSettings、CloudinaryOptions）
 | Method | 路徑 | 驗證 | 說明 |
 | --- | --- | --- | --- |
 | POST | `/sends/upload-authorization` | 需要 | 取得供前端直接上傳影片到 Cloudinary 的簽章授權（`sendId`、`publicId`、`folder`、`cloudName`、`apiKey`、`timestamp`、`signature`），純運算無副作用，不寫入資料庫。 |
-| POST | `/sends` | 需要 | 影片已直接上傳至 Cloudinary 後，帶入 JSON body（`sendId`、岩館名稱、難度、備註）建立完攀紀錄，上傳者與上傳時間由後端指派。 |
+| POST | `/sends` | 需要 | 影片已直接上傳至 Cloudinary 後，帶入 JSON body（`sendId`、岩館名稱、難度、備註、上傳日期）建立完攀紀錄，上傳者由後端指派；上傳日期若未提供則預設為今日。 |
 | GET | `/sends` | 不需 | 取得所有完攀紀錄清單。 |
-| GET | `/sends/mine` | 需要 | 依岩館名稱（模糊搜尋）、上傳時間區間、難度區間，取得目前登入使用者自己上傳的影片紀錄清單，含 Cloudinary 簽章縮圖網址。 |
+| GET | `/sends/mine` | 需要 | 依岩館名稱（模糊搜尋）、上傳日期區間、難度區間，取得目前登入使用者自己上傳的影片紀錄清單，含 Cloudinary 簽章縮圖網址。 |
 | GET | `/sends/{id}` | 不需 | 依 ID 取得單筆完攀紀錄，不存在則回傳 404。 |
-| PUT | `/sends/{id}` | 需要 | 編輯完攀紀錄的上傳時間（必填）、岩館、難度、備註；僅上傳者本人可編輯，非本人或不存在回傳 404。 |
+| PUT | `/sends/{id}` | 需要 | 編輯完攀紀錄的上傳日期（必填）、岩館、難度、備註；僅上傳者本人可編輯，非本人或不存在回傳 404。 |
 | DELETE | `/sends/{id}` | 需要 | 刪除完攀紀錄，同時刪除 Cloudinary 上對應的影片資源；僅上傳者本人可刪除，非本人或不存在回傳 404。 |
 
 影片儲存改採 **Cloudinary**（雲端物件儲存 + CDN），實際流程由 `IVideoStorageService` 抽象化，目前實作 `CloudinaryVideoStorageService`：

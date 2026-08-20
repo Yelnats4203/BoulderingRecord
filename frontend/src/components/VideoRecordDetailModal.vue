@@ -49,25 +49,19 @@ watch(
 )
 
 function formatDate(value: string): string {
-  return new Date(value).toLocaleString()
-}
-
-function toDateTimeLocalValue(value: string): string {
-  const date = new Date(value)
-  const pad = (n: number): string => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  return new Date(value).toLocaleDateString()
 }
 
 const isEditing = ref<boolean>(false)
 const isSaving = ref<boolean>(false)
 const errorMessage = ref<string>('')
-const uploadedAt = ref<string>(toDateTimeLocalValue(props.record.uploadedAt))
+const uploadedAt = ref<string>(props.record.uploadedAt)
 const gymName = ref<string>(props.record.gymName ?? '')
 const difficulty = ref<string>(props.record.difficulty === null ? '' : String(props.record.difficulty))
 const note = ref<string>(props.record.note ?? '')
 
 function startEditing(): void {
-  uploadedAt.value = toDateTimeLocalValue(props.record.uploadedAt)
+  uploadedAt.value = props.record.uploadedAt
   gymName.value = props.record.gymName ?? ''
   difficulty.value = props.record.difficulty === null ? '' : String(props.record.difficulty)
   note.value = props.record.note ?? ''
@@ -84,7 +78,7 @@ async function handleSave(): Promise<void> {
   isSaving.value = true
   try {
     const updated = await updateSend(props.record.id, {
-      uploadedAt: new Date(uploadedAt.value).toISOString(),
+      uploadedAt: uploadedAt.value,
       gymName: gymName.value,
       difficulty: difficulty.value,
       note: note.value,
@@ -145,8 +139,8 @@ async function handleConfirmDelete(): Promise<void> {
 
       <form v-if="isEditing" class="edit-form" @submit.prevent="handleSave">
         <div class="form-field">
-          <label for="edit-uploaded-at">上傳時間</label>
-          <input id="edit-uploaded-at" v-model="uploadedAt" type="datetime-local" required />
+          <label for="edit-uploaded-at">上傳日期</label>
+          <input id="edit-uploaded-at" v-model="uploadedAt" type="date" required />
         </div>
         <div class="form-field">
           <label for="edit-gym-name">岩館（選填）</label>
@@ -172,7 +166,7 @@ async function handleConfirmDelete(): Promise<void> {
       <template v-else>
         <div class="video-row"><span class="video-label">岩館</span><span>{{ record.gymName ?? '-' }}</span></div>
         <div class="video-row"><span class="video-label">難度</span><span>{{ record.difficulty ?? '-' }}</span></div>
-        <div class="video-row"><span class="video-label">上傳時間</span><span>{{ formatDate(record.uploadedAt) }}</span></div>
+        <div class="video-row"><span class="video-label">上傳日期</span><span>{{ formatDate(record.uploadedAt) }}</span></div>
         <div class="video-row"><span class="video-label">備註</span><span>{{ record.note ?? '-' }}</span></div>
 
         <div class="detail-actions">

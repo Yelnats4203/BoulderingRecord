@@ -16,9 +16,9 @@ public class Send
     public string? GymName { get; set; }
 
     /// <summary>
-    /// 影片上傳時間。
+    /// 影片上傳日期。
     /// </summary>
-    public DateTimeOffset UploadedAt { get; set; }
+    public DateOnly UploadedAt { get; set; }
 
     /// <summary>
     /// 攀岩難度。

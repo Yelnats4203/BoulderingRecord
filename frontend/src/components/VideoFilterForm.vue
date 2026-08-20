@@ -40,12 +40,12 @@ function handleSubmit(): void {
       </div>
 
       <div class="form-field">
-        <label for="filter-uploaded-from">上傳時間（起）</label>
+        <label for="filter-uploaded-from">上傳日期（起）</label>
         <input id="filter-uploaded-from" v-model="uploadedFrom" type="date" />
       </div>
 
       <div class="form-field">
-        <label for="filter-uploaded-to">上傳時間（迄）</label>
+        <label for="filter-uploaded-to">上傳日期（迄）</label>
         <input id="filter-uploaded-to" v-model="uploadedTo" type="date" />
       </div>
 

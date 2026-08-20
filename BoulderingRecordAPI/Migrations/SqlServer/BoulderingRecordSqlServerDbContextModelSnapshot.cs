@@ -39,8 +39,8 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<DateTimeOffset>("UploadedAt")
-                        .HasColumnType("datetimeoffset");
+                    b.Property<DateOnly>("UploadedAt")
+                        .HasColumnType("date");
 
                     b.Property<Guid>("UploaderId")
                         .HasColumnType("uniqueidentifier");

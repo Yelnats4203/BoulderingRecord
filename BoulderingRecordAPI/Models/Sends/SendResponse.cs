@@ -7,7 +7,7 @@ namespace BoulderingRecordAPI.Models.Sends;
 /// </summary>
 /// <param name="Id">紀錄唯一識別碼。</param>
 /// <param name="GymName">岩館名稱。</param>
-/// <param name="UploadedAt">影片上傳時間。</param>
+/// <param name="UploadedAt">影片上傳日期。</param>
 /// <param name="Difficulty">攀岩難度。</param>
 /// <param name="UploaderId">上傳者的使用者 ID。</param>
 /// <param name="Note">備註。</param>
@@ -15,7 +15,7 @@ namespace BoulderingRecordAPI.Models.Sends;
 public record SendResponse(
     Guid Id,
     string? GymName,
-    DateTimeOffset UploadedAt,
+    DateOnly UploadedAt,
     int? Difficulty,
     Guid UploaderId,
     string? Note,

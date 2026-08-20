@@ -7,14 +7,14 @@ namespace BoulderingRecordAPI.Models.Sends;
 /// </summary>
 /// <param name="Id">紀錄唯一識別碼。</param>
 /// <param name="GymName">岩館名稱。</param>
-/// <param name="UploadedAt">影片上傳時間。</param>
+/// <param name="UploadedAt">影片上傳日期。</param>
 /// <param name="Difficulty">攀岩難度。</param>
 /// <param name="Note">備註。</param>
 /// <param name="ThumbnailUrl">Cloudinary 簽章縮圖網址。</param>
 public record VideoRecordResponse(
     Guid Id,
     string? GymName,
-    DateTimeOffset UploadedAt,
+    DateOnly UploadedAt,
     int? Difficulty,
     string? Note,
     string ThumbnailUrl)

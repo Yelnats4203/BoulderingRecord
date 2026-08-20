@@ -25,6 +25,7 @@ export interface CreateSendPayload {
   gymName: string
   difficulty: string
   note: string
+  uploadedAt: string
 }
 
 export interface VideoPlaybackResponse {
