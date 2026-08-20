@@ -35,4 +35,5 @@ BoulderingRecord 是一個攀岩紀錄管理系統，以 **.NET 10**（`net10.0`
 
 - 方案根目錄的 `CloudinaryKeys.txt` 存放 Cloudinary 的 `API Key`、`API Secret` 等本機測試用機密，已列入 `.gitignore`，不會進版控。
 - 需要在本機測試環境（如 `appsettings.Development.json` 或執行期環境變數）填入 Cloudinary 憑證、但目前設定值為空時，先查找此檔案取得對應的值再填入，不要要求使用者重新提供。
+- 方案根目錄的 `TestAccount.txt` 存放前端測試用登入帳號密碼，已列入 `.gitignore`，不會進版控。日後需要用瀏覽器自動化工具（如 Chrome 擴充套件）實測前端登入後的功能（上傳、儀表板等）時，先查找此檔案取得帳密再登入測試，不要要求使用者重新提供。
 - 測試完成、送出版控前，仍須依上述「版控安全檢查」規範，確認 `appsettings.json` 等設定檔中的機密值已清空。
