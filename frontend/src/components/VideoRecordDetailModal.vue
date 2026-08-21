@@ -52,6 +52,10 @@ function formatDate(value: string): string {
   return new Date(value).toLocaleDateString()
 }
 
+function formatDifficulty(value: number | null): string {
+  return value === null ? '-' : `V${value}`
+}
+
 const isEditing = ref<boolean>(false)
 const isSaving = ref<boolean>(false)
 const errorMessage = ref<string>('')
@@ -71,6 +75,18 @@ function startEditing(): void {
 
 function cancelEditing(): void {
   isEditing.value = false
+}
+
+function sanitizeDifficulty(): void {
+  if (difficulty.value === '') {
+    return
+  }
+  const parsed: number = Math.round(Number(difficulty.value))
+  if (Number.isNaN(parsed)) {
+    difficulty.value = ''
+    return
+  }
+  difficulty.value = String(Math.min(10, Math.max(0, parsed)))
 }
 
 async function handleSave(): Promise<void> {
@@ -148,11 +164,26 @@ async function handleConfirmDelete(): Promise<void> {
         </div>
         <div class="form-field">
           <label for="edit-difficulty">難度（選填）</label>
-          <input id="edit-difficulty" v-model="difficulty" type="number" />
+          <div class="difficulty-input-wrapper">
+            <span class="difficulty-prefix">V</span>
+            <input
+              id="edit-difficulty"
+              v-model="difficulty"
+              type="number"
+              list="edit-difficulty-options"
+              min="0"
+              max="10"
+              step="1"
+              @blur="sanitizeDifficulty"
+            />
+          </div>
+          <datalist id="edit-difficulty-options">
+            <option v-for="n in 11" :key="n" :value="n - 1">V{{ n - 1 }}</option>
+          </datalist>
         </div>
         <div class="form-field">
           <label for="edit-note">備註（選填）</label>
-          <textarea id="edit-note" v-model="note"></textarea>
+          <textarea id="edit-note" v-model="note" placeholder="可輸入Crux等等"></textarea>
         </div>
         <div class="edit-actions">
           <button class="btn-secondary" type="button" :disabled="isSaving" @click="cancelEditing">取消</button>
@@ -165,7 +196,7 @@ async function handleConfirmDelete(): Promise<void> {
 
       <template v-else>
         <div class="video-row"><span class="video-label">岩館</span><span>{{ record.gymName ?? '-' }}</span></div>
-        <div class="video-row"><span class="video-label">難度</span><span>{{ record.difficulty ?? '-' }}</span></div>
+        <div class="video-row"><span class="video-label">難度</span><span>{{ formatDifficulty(record.difficulty) }}</span></div>
         <div class="video-row"><span class="video-label">上傳日期</span><span>{{ formatDate(record.uploadedAt) }}</span></div>
         <div class="video-row"><span class="video-label">備註</span><span>{{ record.note ?? '-' }}</span></div>
 
@@ -271,5 +302,23 @@ async function handleConfirmDelete(): Promise<void> {
   justify-content: flex-end;
   gap: 12px;
   margin-top: 8px;
+}
+
+.difficulty-input-wrapper {
+  position: relative;
+}
+
+.difficulty-input-wrapper input {
+  padding-left: 28px;
+}
+
+.difficulty-prefix {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  pointer-events: none;
 }
 </style>

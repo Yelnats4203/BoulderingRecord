@@ -29,6 +29,18 @@ function handleFileChange(event: Event): void {
   videoFile.value = input.files && input.files.length > 0 ? input.files[0] : null
 }
 
+function sanitizeDifficulty(): void {
+  if (difficulty.value === '') {
+    return
+  }
+  const parsed: number = Math.round(Number(difficulty.value))
+  if (Number.isNaN(parsed)) {
+    difficulty.value = ''
+    return
+  }
+  difficulty.value = String(Math.min(10, Math.max(0, parsed)))
+}
+
 async function handleUpload(): Promise<void> {
   if (!videoFile.value) {
     uploadErrorMessage.value = '請選擇要上傳的影片檔案。'
@@ -110,12 +122,27 @@ async function handleUpload(): Promise<void> {
 
       <div class="form-field">
         <label for="difficulty">難度（選填）</label>
-        <input id="difficulty" v-model="difficulty" type="number" />
+        <div class="difficulty-input-wrapper">
+          <span class="difficulty-prefix">V</span>
+          <input
+            id="difficulty"
+            v-model="difficulty"
+            type="number"
+            list="difficulty-options"
+            min="0"
+            max="10"
+            step="1"
+            @blur="sanitizeDifficulty"
+          />
+        </div>
+        <datalist id="difficulty-options">
+          <option v-for="n in 11" :key="n" :value="n - 1">V{{ n - 1 }}</option>
+        </datalist>
       </div>
 
       <div class="form-field">
         <label for="note">備註（選填）</label>
-        <textarea id="note" v-model="note"></textarea>
+        <textarea id="note" v-model="note" placeholder="可輸入Crux等等"></textarea>
       </div>
 
       <button
@@ -147,5 +174,23 @@ async function handleUpload(): Promise<void> {
   color: #16a34a;
   font-size: 0.9rem;
   margin: 0 0 12px;
+}
+
+.difficulty-input-wrapper {
+  position: relative;
+}
+
+.difficulty-input-wrapper input {
+  padding-left: 28px;
+}
+
+.difficulty-prefix {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  pointer-events: none;
 }
 </style>
