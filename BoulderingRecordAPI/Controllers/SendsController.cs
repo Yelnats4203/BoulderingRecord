@@ -15,7 +15,8 @@ namespace BoulderingRecordAPI.Controllers;
 [Route("[controller]")]
 public class SendsController(
     ISendRepository sendRepository,
-    IVideoStorageService videoStorageService) : ControllerBase
+    IVideoStorageService videoStorageService,
+    IUserRepository userRepository) : ControllerBase
 {
     /// <summary>
     /// 取得供前端直接上傳影片到 Cloudinary 的簽章授權，上傳完成後需以回傳的 <c>SendId</c> 呼叫 <see cref="Upload"/> 建立紀錄。
@@ -37,7 +38,38 @@ public class SendsController(
     }
 
     /// <summary>
-    /// 建立完攀紀錄，須於影片已直接上傳至 Cloudinary 後呼叫；上傳者由後端指派，上傳日期若未提供則預設為今日。
+    /// 確認目前登入使用者是否可繼續上傳影片；僅測試帳號（<see cref="User.IsDemoAcc"/>）受當日上傳筆數限制。
+    /// </summary>
+    [TokenAuthorize]
+    [HttpGet("upload-eligibility")]
+    [ProducesResponseType(typeof(UploadEligibilityResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetUploadEligibility(CancellationToken cancellationToken)
+    {
+        Guid? uploaderId = GetUploaderId();
+        if (uploaderId is null)
+        {
+            return Unauthorized();
+        }
+
+        User? user = await userRepository.GetByIdAsync(uploaderId.Value, cancellationToken);
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        if (!user.IsDemoAcc)
+        {
+            return Ok(new UploadEligibilityResponse(true));
+        }
+
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        int todayCount = await sendRepository.CountByUploaderIdAndUploadedDateAsync(uploaderId.Value, today, cancellationToken);
+        return Ok(new UploadEligibilityResponse(todayCount < 5));
+    }
+
+    /// <summary>
+    /// 建立完攀紀錄，須於影片已直接上傳至 Cloudinary 後呼叫；上傳者由後端指派，攀爬日期若未提供則預設為今日，上傳日期一律為今日。
     /// </summary>
     [TokenAuthorize]
     [HttpPost]
@@ -67,7 +99,8 @@ public class SendsController(
             Difficulty = request.Difficulty,
             Note = request.Note,
             UploaderId = uploaderId.Value,
-            UploadedAt = request.UploadedAt ?? DateOnly.FromDateTime(DateTime.UtcNow),
+            ClimbAt = request.ClimbAt ?? DateOnly.FromDateTime(DateTime.UtcNow),
+            UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow),
             VideoPublicId = publicId,
         };
 
@@ -78,7 +111,7 @@ public class SendsController(
     }
 
     /// <summary>
-    /// 依岩館名稱、上傳日期區間、難度區間，取得目前登入使用者自己上傳的影片紀錄清單。
+    /// 依岩館名稱、攀爬日期區間、難度區間，取得目前登入使用者自己上傳的影片紀錄清單。
     /// </summary>
     [TokenAuthorize]
     [HttpGet("mine")]
@@ -86,8 +119,8 @@ public class SendsController(
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetMine(
         string? gymName,
-        DateOnly? uploadedFrom,
-        DateOnly? uploadedTo,
+        DateOnly? climbAtFrom,
+        DateOnly? climbAtTo,
         int? minDifficulty,
         int? maxDifficulty,
         CancellationToken cancellationToken)
@@ -99,12 +132,12 @@ public class SendsController(
         }
 
         List<Send> sends = await sendRepository.GetByUploaderIdAsync(
-            uploaderId.Value, gymName, uploadedFrom, uploadedTo, minDifficulty, maxDifficulty, cancellationToken);
+            uploaderId.Value, gymName, climbAtFrom, climbAtTo, minDifficulty, maxDifficulty, cancellationToken);
         return Ok(sends.Select(s => VideoRecordResponse.FromEntity(s, videoStorageService)));
     }
 
     /// <summary>
-    /// 編輯完攀紀錄的上傳日期、岩館、難度、備註；僅上傳者本人可編輯，上傳日期為必填。
+    /// 編輯完攀紀錄的攀爬日期、岩館、難度、備註；僅上傳者本人可編輯，攀爬日期為必填。
     /// </summary>
     [TokenAuthorize]
     [HttpPut("{id:guid}")]
@@ -120,9 +153,9 @@ public class SendsController(
             return Unauthorized();
         }
 
-        if (request.UploadedAt == default)
+        if (request.ClimbAt == default)
         {
-            return BadRequest("上傳日期為必填。");
+            return BadRequest("攀爬日期為必填。");
         }
 
         Send? send = await sendRepository.GetByIdAsync(id, cancellationToken);
@@ -131,7 +164,7 @@ public class SendsController(
             return NotFound();
         }
 
-        send.UploadedAt = request.UploadedAt;
+        send.ClimbAt = request.ClimbAt;
         send.GymName = request.GymName;
         send.Difficulty = request.Difficulty;
         send.Note = request.Note;

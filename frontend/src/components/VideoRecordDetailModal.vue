@@ -59,13 +59,13 @@ function formatDifficulty(value: number | null): string {
 const isEditing = ref<boolean>(false)
 const isSaving = ref<boolean>(false)
 const errorMessage = ref<string>('')
-const uploadedAt = ref<string>(props.record.uploadedAt)
+const climbAt = ref<string>(props.record.climbAt)
 const gymName = ref<string>(props.record.gymName ?? '')
 const difficulty = ref<string>(props.record.difficulty === null ? '' : String(props.record.difficulty))
 const note = ref<string>(props.record.note ?? '')
 
 function startEditing(): void {
-  uploadedAt.value = props.record.uploadedAt
+  climbAt.value = props.record.climbAt
   gymName.value = props.record.gymName ?? ''
   difficulty.value = props.record.difficulty === null ? '' : String(props.record.difficulty)
   note.value = props.record.note ?? ''
@@ -94,7 +94,7 @@ async function handleSave(): Promise<void> {
   isSaving.value = true
   try {
     const updated = await updateSend(props.record.id, {
-      uploadedAt: uploadedAt.value,
+      climbAt: climbAt.value,
       gymName: gymName.value,
       difficulty: difficulty.value,
       note: note.value,
@@ -102,7 +102,7 @@ async function handleSave(): Promise<void> {
     emit('updated', {
       ...props.record,
       gymName: updated.gymName,
-      uploadedAt: updated.uploadedAt,
+      climbAt: updated.climbAt,
       difficulty: updated.difficulty,
       note: updated.note,
     })
@@ -155,8 +155,8 @@ async function handleConfirmDelete(): Promise<void> {
 
       <form v-if="isEditing" class="edit-form" @submit.prevent="handleSave">
         <div class="form-field">
-          <label for="edit-uploaded-at">上傳日期</label>
-          <input id="edit-uploaded-at" v-model="uploadedAt" type="date" required />
+          <label for="edit-climb-at">攀爬日期</label>
+          <input id="edit-climb-at" v-model="climbAt" type="date" required />
         </div>
         <div class="form-field">
           <label for="edit-gym-name">岩館（選填）</label>
@@ -197,7 +197,7 @@ async function handleConfirmDelete(): Promise<void> {
       <template v-else>
         <div class="video-row"><span class="video-label">岩館</span><span>{{ record.gymName ?? '-' }}</span></div>
         <div class="video-row"><span class="video-label">難度</span><span>{{ formatDifficulty(record.difficulty) }}</span></div>
-        <div class="video-row"><span class="video-label">上傳日期</span><span>{{ formatDate(record.uploadedAt) }}</span></div>
+        <div class="video-row"><span class="video-label">攀爬日期</span><span>{{ formatDate(record.climbAt) }}</span></div>
         <div class="video-row"><span class="video-label">備註</span><span>{{ record.note ?? '-' }}</span></div>
 
         <div class="detail-actions">

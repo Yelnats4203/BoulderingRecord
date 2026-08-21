@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { createSend, getUploadAuthorization, uploadVideoToCloudinary } from '../api/sends'
+import { createSend, getUploadAuthorization, getUploadEligibility, uploadVideoToCloudinary } from '../api/sends'
 import { VideoCompressionError } from '../utils/videoCompression'
 import { compressVideoWebCodecs } from '../utils/videoCompressionWebCodecs'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
@@ -14,7 +14,7 @@ function todayDateOnly(): string {
 }
 
 const videoFile = ref<File | null>(null)
-const uploadedAt = ref<string>(todayDateOnly())
+const climbAt = ref<string>(todayDateOnly())
 const gymName = ref<string>('')
 const difficulty = ref<string>('')
 const note = ref<string>('')
@@ -49,6 +49,18 @@ async function handleUpload(): Promise<void> {
 
   uploadErrorMessage.value = ''
   uploadSuccessMessage.value = ''
+
+  try {
+    const eligibility = await getUploadEligibility()
+    if (!eligibility.isAllowed) {
+      uploadErrorMessage.value = '測試帳號一日僅能上傳5筆。'
+      return
+    }
+  } catch {
+    uploadErrorMessage.value = '上傳資格確認失敗，請稍後再試。'
+    return
+  }
+
   isCompressing.value = true
   compressionProgress.value = 0
 
@@ -77,11 +89,11 @@ async function handleUpload(): Promise<void> {
       gymName: gymName.value,
       difficulty: difficulty.value,
       note: note.value,
-      uploadedAt: uploadedAt.value,
+      climbAt: climbAt.value,
     })
     uploadSuccessMessage.value = '上傳成功。'
     videoFile.value = null
-    uploadedAt.value = todayDateOnly()
+    climbAt.value = todayDateOnly()
     gymName.value = ''
     difficulty.value = ''
     note.value = ''
@@ -111,8 +123,8 @@ async function handleUpload(): Promise<void> {
       </div>
 
       <div class="form-field">
-        <label for="uploadedAt">日期</label>
-        <input id="uploadedAt" v-model="uploadedAt" type="date" />
+        <label for="climbAt">攀爬日期</label>
+        <input id="climbAt" v-model="climbAt" type="date" />
       </div>
 
       <div class="form-field">

@@ -9,9 +9,10 @@ namespace BoulderingRecordAPI.Models.Users;
 /// <param name="Username">顯示用的使用者名稱。</param>
 /// <param name="Acc">登入帳號。</param>
 /// <param name="HasEditPermission">是否具有編輯權限。</param>
+/// <param name="IsDemoAcc">是否為測試用（demo）帳號。</param>
 /// <param name="CreatedAt">帳號建立時間。</param>
-public record UserResponse(Guid Id, string Username, string Acc, bool HasEditPermission, DateTime CreatedAt)
+public record UserResponse(Guid Id, string Username, string Acc, bool HasEditPermission, bool IsDemoAcc, DateTime CreatedAt)
 {
     public static UserResponse FromEntity(User user) =>
-        new(user.Id, user.Username, user.Acc, user.HasEditPermission, user.CreatedAt);
+        new(user.Id, user.Username, user.Acc, user.HasEditPermission, user.IsDemoAcc, user.CreatedAt);
 }

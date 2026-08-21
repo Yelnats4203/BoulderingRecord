@@ -34,4 +34,9 @@ public class User
     /// 是否具有編輯權限。
     /// </summary>
     public bool HasEditPermission { get; set; }
+
+    /// <summary>
+    /// 是否為測試用（demo）帳號。
+    /// </summary>
+    public bool IsDemoAcc { get; set; }
 }

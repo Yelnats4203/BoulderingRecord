@@ -5,6 +5,7 @@ import type {
   SendResponse,
   UpdateSendPayload,
   UploadAuthorization,
+  UploadEligibilityResponse,
   VideoPlaybackResponse,
   VideoRecordFilter,
   VideoRecordResponse,
@@ -15,13 +16,17 @@ export function getMySends(filter: Partial<VideoRecordFilter>): Promise<VideoRec
     .get<VideoRecordResponse[]>('/sends/mine', {
       params: {
         gymName: filter.gymName || undefined,
-        uploadedFrom: filter.uploadedFrom || undefined,
-        uploadedTo: filter.uploadedTo || undefined,
+        climbAtFrom: filter.climbAtFrom || undefined,
+        climbAtTo: filter.climbAtTo || undefined,
         minDifficulty: filter.minDifficulty || undefined,
         maxDifficulty: filter.maxDifficulty || undefined,
       },
     })
     .then((response) => response.data)
+}
+
+export function getUploadEligibility(): Promise<UploadEligibilityResponse> {
+  return apiClient.get<UploadEligibilityResponse>('/sends/upload-eligibility').then((response) => response.data)
 }
 
 export function getUploadAuthorization(): Promise<UploadAuthorization> {
@@ -50,7 +55,7 @@ export function createSend(payload: CreateSendPayload): Promise<SendResponse> {
       gymName: payload.gymName || null,
       difficulty: payload.difficulty ? Number(payload.difficulty) : null,
       note: payload.note || null,
-      uploadedAt: payload.uploadedAt || undefined,
+      climbAt: payload.climbAt || undefined,
     })
     .then((response) => response.data)
 }
@@ -58,7 +63,7 @@ export function createSend(payload: CreateSendPayload): Promise<SendResponse> {
 export function updateSend(id: string, payload: UpdateSendPayload): Promise<SendResponse> {
   return apiClient
     .put<SendResponse>(`/sends/${id}`, {
-      uploadedAt: payload.uploadedAt,
+      climbAt: payload.climbAt,
       gymName: payload.gymName || null,
       difficulty: payload.difficulty ? Number(payload.difficulty) : null,
       note: payload.note || null,

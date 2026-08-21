@@ -9,10 +9,15 @@ public interface ISendRepository
     Task<List<Send>> GetByUploaderIdAsync(
         Guid uploaderId,
         string? gymName,
-        DateOnly? uploadedFrom,
-        DateOnly? uploadedTo,
+        DateOnly? climbAtFrom,
+        DateOnly? climbAtTo,
         int? minDifficulty,
         int? maxDifficulty,
+        CancellationToken cancellationToken = default);
+
+    Task<int> CountByUploaderIdAndUploadedDateAsync(
+        Guid uploaderId,
+        DateOnly uploadedDate,
         CancellationToken cancellationToken = default);
 
     Task AddAsync(Send send, CancellationToken cancellationToken = default);

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using BoulderingRecordAPI.Controllers;
 using BoulderingRecordAPI.Entities;
 using BoulderingRecordAPI.Models.Sends;
+using BoulderingRecordAPI.Repositories;
 using BoulderingRecordAPI.Services;
 using BoulderingRecordAPI.Tests.Fakes;
 using Microsoft.AspNetCore.Http;
@@ -17,11 +18,13 @@ public class SendsControllerTests
     private static SendsController CreateController(
         FakeSendRepository? sendRepository = null,
         IVideoStorageService? videoStorageService = null,
+        IUserRepository? userRepository = null,
         bool authenticated = true)
     {
         SendsController controller = new SendsController(
             sendRepository ?? new FakeSendRepository(),
-            videoStorageService ?? new FakeVideoStorageService());
+            videoStorageService ?? new FakeVideoStorageService(),
+            userRepository ?? new FakeUserRepository([]));
 
         DefaultHttpContext httpContext = new DefaultHttpContext();
         if (authenticated)
@@ -73,11 +76,11 @@ public class SendsControllerTests
         Assert.Equal(5, response.Difficulty);
         Assert.Equal("備註", response.Note);
         Assert.Equal(TestUploaderId, response.UploaderId);
-        Assert.True(response.UploadedAt <= DateOnly.FromDateTime(DateTime.UtcNow));
+        Assert.True(response.ClimbAt <= DateOnly.FromDateTime(DateTime.UtcNow));
     }
 
     [Fact]
-    public async Task Upload_NoUploadedAtInRequest_DefaultsToToday()
+    public async Task Upload_NoClimbAtInRequest_DefaultsToToday()
     {
         SendsController controller = CreateController();
 
@@ -87,11 +90,11 @@ public class SendsControllerTests
 
         ObjectResult created = Assert.IsType<ObjectResult>(result);
         SendResponse response = Assert.IsType<SendResponse>(created.Value);
-        Assert.Equal(DateOnly.FromDateTime(DateTime.UtcNow), response.UploadedAt);
+        Assert.Equal(DateOnly.FromDateTime(DateTime.UtcNow), response.ClimbAt);
     }
 
     [Fact]
-    public async Task Upload_UploadedAtInRequest_UsesProvidedDate()
+    public async Task Upload_ClimbAtInRequest_UsesProvidedDate()
     {
         SendsController controller = CreateController();
         DateOnly providedDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-3);
@@ -102,7 +105,24 @@ public class SendsControllerTests
 
         ObjectResult created = Assert.IsType<ObjectResult>(result);
         SendResponse response = Assert.IsType<SendResponse>(created.Value);
-        Assert.Equal(providedDate, response.UploadedAt);
+        Assert.Equal(providedDate, response.ClimbAt);
+    }
+
+    [Fact]
+    public async Task Upload_AlwaysSetsUploadedAtToTodayRegardlessOfClimbAt()
+    {
+        FakeSendRepository repository = new FakeSendRepository();
+        SendsController controller = CreateController(repository);
+        Guid sendId = Guid.CreateVersion7();
+        DateOnly pastClimbAt = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-30);
+
+        await controller.Upload(
+            new CreateSendRequest(sendId, "測試岩館", 5, "備註", pastClimbAt),
+            CancellationToken.None);
+
+        Send? send = await repository.GetByIdAsync(sendId, CancellationToken.None);
+        Assert.NotNull(send);
+        Assert.Equal(DateOnly.FromDateTime(DateTime.UtcNow), send!.UploadedAt);
     }
 
     [Fact]
@@ -130,6 +150,85 @@ public class SendsControllerTests
     }
 
     [Fact]
+    public async Task GetUploadEligibility_NotAuthenticated_ReturnsUnauthorized()
+    {
+        SendsController controller = CreateController(authenticated: false);
+
+        IActionResult result = await controller.GetUploadEligibility(CancellationToken.None);
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task GetUploadEligibility_NonDemoAccount_AlwaysAllowed()
+    {
+        User user = new User { Id = TestUploaderId, IsDemoAcc = false };
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        Send[] seed = Enumerable.Range(0, 10)
+            .Select(_ => new Send { UploaderId = TestUploaderId, UploadedAt = today, ClimbAt = today, VideoPublicId = Guid.CreateVersion7().ToString() })
+            .ToArray();
+        SendsController controller = CreateController(new FakeSendRepository(seed), userRepository: new FakeUserRepository([user]));
+
+        IActionResult result = await controller.GetUploadEligibility(CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        UploadEligibilityResponse response = Assert.IsType<UploadEligibilityResponse>(okResult.Value);
+        Assert.True(response.IsAllowed);
+    }
+
+    [Fact]
+    public async Task GetUploadEligibility_DemoAccountUnderDailyLimit_ReturnsAllowed()
+    {
+        User user = new User { Id = TestUploaderId, IsDemoAcc = true };
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        Send[] seed = Enumerable.Range(0, 4)
+            .Select(_ => new Send { UploaderId = TestUploaderId, UploadedAt = today, ClimbAt = today, VideoPublicId = Guid.CreateVersion7().ToString() })
+            .ToArray();
+        SendsController controller = CreateController(new FakeSendRepository(seed), userRepository: new FakeUserRepository([user]));
+
+        IActionResult result = await controller.GetUploadEligibility(CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        UploadEligibilityResponse response = Assert.IsType<UploadEligibilityResponse>(okResult.Value);
+        Assert.True(response.IsAllowed);
+    }
+
+    [Fact]
+    public async Task GetUploadEligibility_DemoAccountAtDailyLimit_ReturnsNotAllowed()
+    {
+        User user = new User { Id = TestUploaderId, IsDemoAcc = true };
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        Send[] seed = Enumerable.Range(0, 5)
+            .Select(_ => new Send { UploaderId = TestUploaderId, UploadedAt = today, ClimbAt = today, VideoPublicId = Guid.CreateVersion7().ToString() })
+            .ToArray();
+        SendsController controller = CreateController(new FakeSendRepository(seed), userRepository: new FakeUserRepository([user]));
+
+        IActionResult result = await controller.GetUploadEligibility(CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        UploadEligibilityResponse response = Assert.IsType<UploadEligibilityResponse>(okResult.Value);
+        Assert.False(response.IsAllowed);
+    }
+
+    [Fact]
+    public async Task GetUploadEligibility_DemoAccountLimitOnlyCountsToday_IgnoresPastUploads()
+    {
+        User user = new User { Id = TestUploaderId, IsDemoAcc = true };
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        DateOnly yesterday = today.AddDays(-1);
+        Send[] seed = Enumerable.Range(0, 10)
+            .Select(_ => new Send { UploaderId = TestUploaderId, UploadedAt = yesterday, ClimbAt = yesterday, VideoPublicId = Guid.CreateVersion7().ToString() })
+            .ToArray();
+        SendsController controller = CreateController(new FakeSendRepository(seed), userRepository: new FakeUserRepository([user]));
+
+        IActionResult result = await controller.GetUploadEligibility(CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        UploadEligibilityResponse response = Assert.IsType<UploadEligibilityResponse>(okResult.Value);
+        Assert.True(response.IsAllowed);
+    }
+
+    [Fact]
     public async Task GetMine_NotAuthenticated_ReturnsUnauthorized()
     {
         SendsController controller = CreateController(authenticated: false);
@@ -144,8 +243,8 @@ public class SendsControllerTests
     {
         Send[] seed = new[]
         {
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" },
-            new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "b" },
+            new Send { UploaderId = TestUploaderId, ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" },
+            new Send { UploaderId = Guid.CreateVersion7(), ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "b" },
         };
         SendsController controller = CreateController(new FakeSendRepository(seed));
 
@@ -163,8 +262,8 @@ public class SendsControllerTests
     {
         Send[] seed = new[]
         {
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a", GymName = "True Rock 岩究所" },
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "b", GymName = "彩岩攀岩館" },
+            new Send { UploaderId = TestUploaderId, ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a", GymName = "True Rock 岩究所" },
+            new Send { UploaderId = TestUploaderId, ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "b", GymName = "彩岩攀岩館" },
         };
         SendsController controller = CreateController(new FakeSendRepository(seed));
 
@@ -177,13 +276,13 @@ public class SendsControllerTests
     }
 
     [Fact]
-    public async Task GetMine_UploadedAtRangeFilter_ReturnsSendsWithinRange()
+    public async Task GetMine_ClimbAtRangeFilter_ReturnsSendsWithinRange()
     {
         DateOnly now = DateOnly.FromDateTime(DateTime.UtcNow);
         Send[] seed = new[]
         {
-            new Send { UploaderId = TestUploaderId, UploadedAt = now.AddDays(-10), VideoPublicId = "a" },
-            new Send { UploaderId = TestUploaderId, UploadedAt = now, VideoPublicId = "b" },
+            new Send { UploaderId = TestUploaderId, ClimbAt = now.AddDays(-10), VideoPublicId = "a" },
+            new Send { UploaderId = TestUploaderId, ClimbAt = now, VideoPublicId = "b" },
         };
         SendsController controller = CreateController(new FakeSendRepository(seed));
 
@@ -200,9 +299,9 @@ public class SendsControllerTests
     {
         Send[] seed = new[]
         {
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a", Difficulty = 2 },
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "b", Difficulty = 5 },
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "c", Difficulty = 8 },
+            new Send { UploaderId = TestUploaderId, ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a", Difficulty = 2 },
+            new Send { UploaderId = TestUploaderId, ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "b", Difficulty = 5 },
+            new Send { UploaderId = TestUploaderId, ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "c", Difficulty = 8 },
         };
         SendsController controller = CreateController(new FakeSendRepository(seed));
 
@@ -219,7 +318,7 @@ public class SendsControllerTests
     {
         Send[] seed = new[]
         {
-            new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a", GymName = "彩岩攀岩館" },
+            new Send { UploaderId = TestUploaderId, ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a", GymName = "彩岩攀岩館" },
         };
         SendsController controller = CreateController(new FakeSendRepository(seed));
 
@@ -236,32 +335,56 @@ public class SendsControllerTests
         Send send = new Send
         {
             UploaderId = TestUploaderId,
-            UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow),
+            ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow),
             VideoPublicId = "a",
             GymName = "舊岩館",
             Difficulty = 3,
             Note = "舊備註",
         };
         SendsController controller = CreateController(new FakeSendRepository([send]));
-        DateOnly newUploadedAt = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+        DateOnly newClimbAt = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
 
         IActionResult result = await controller.Update(
             send.Id,
-            new UpdateSendRequest(newUploadedAt, "新岩館", 7, "新備註"),
+            new UpdateSendRequest(newClimbAt, "新岩館", 7, "新備註"),
             CancellationToken.None);
 
         OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
         SendResponse response = Assert.IsType<SendResponse>(okResult.Value);
-        Assert.Equal(newUploadedAt, response.UploadedAt);
+        Assert.Equal(newClimbAt, response.ClimbAt);
         Assert.Equal("新岩館", response.GymName);
         Assert.Equal(7, response.Difficulty);
         Assert.Equal("新備註", response.Note);
     }
 
     [Fact]
-    public async Task Update_UploadedAtDefault_ReturnsBadRequest()
+    public async Task Update_DoesNotChangeUploadedAt()
     {
-        Send send = new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" };
+        DateOnly originalUploadedAt = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-5);
+        Send send = new Send
+        {
+            UploaderId = TestUploaderId,
+            ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow),
+            UploadedAt = originalUploadedAt,
+            VideoPublicId = "a",
+        };
+        FakeSendRepository repository = new FakeSendRepository([send]);
+        SendsController controller = CreateController(repository);
+
+        await controller.Update(
+            send.Id,
+            new UpdateSendRequest(DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), "新岩館", 7, "新備註"),
+            CancellationToken.None);
+
+        Send? updated = await repository.GetByIdAsync(send.Id, CancellationToken.None);
+        Assert.NotNull(updated);
+        Assert.Equal(originalUploadedAt, updated!.UploadedAt);
+    }
+
+    [Fact]
+    public async Task Update_ClimbAtDefault_ReturnsBadRequest()
+    {
+        Send send = new Send { UploaderId = TestUploaderId, ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" };
         SendsController controller = CreateController(new FakeSendRepository([send]));
 
         IActionResult result = await controller.Update(
@@ -275,7 +398,7 @@ public class SendsControllerTests
     [Fact]
     public async Task Update_NotOwner_ReturnsNotFound()
     {
-        Send send = new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" };
+        Send send = new Send { UploaderId = Guid.CreateVersion7(), ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" };
         SendsController controller = CreateController(new FakeSendRepository([send]));
 
         IActionResult result = await controller.Update(
@@ -302,7 +425,7 @@ public class SendsControllerTests
     [Fact]
     public async Task Delete_Owner_DeletesRecordAndCloudinaryResource()
     {
-        Send send = new Send { UploaderId = TestUploaderId, UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "sends/owner/video" };
+        Send send = new Send { UploaderId = TestUploaderId, ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "sends/owner/video" };
         FakeSendRepository repository = new FakeSendRepository([send]);
         FakeVideoStorageService videoStorageService = new FakeVideoStorageService();
         SendsController controller = CreateController(repository, videoStorageService);
@@ -318,7 +441,7 @@ public class SendsControllerTests
     [Fact]
     public async Task Delete_NotOwner_ReturnsNotFound()
     {
-        Send send = new Send { UploaderId = Guid.CreateVersion7(), UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" };
+        Send send = new Send { UploaderId = Guid.CreateVersion7(), ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" };
         SendsController controller = CreateController(new FakeSendRepository([send]));
 
         IActionResult result = await controller.Delete(send.Id, CancellationToken.None);
@@ -352,7 +475,7 @@ public class SendsControllerTests
         Send send = new Send
         {
             UploaderId = Guid.CreateVersion7(),
-            UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow),
+            ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow),
             VideoPublicId = "someone-else",
             Visibility = SendVisibility.Private,
         };
@@ -369,7 +492,7 @@ public class SendsControllerTests
         Send send = new Send
         {
             UploaderId = TestUploaderId,
-            UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow),
+            ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow),
             VideoPublicId = "sends/owner/video",
             Visibility = SendVisibility.Private,
         };
@@ -390,7 +513,7 @@ public class SendsControllerTests
         Send send = new Send
         {
             UploaderId = Guid.CreateVersion7(),
-            UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow),
+            ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow),
             VideoPublicId = "sends/someone-else/video",
             Visibility = visibility,
         };

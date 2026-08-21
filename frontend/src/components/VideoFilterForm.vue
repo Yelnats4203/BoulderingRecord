@@ -12,8 +12,8 @@ const emit = defineEmits<{
 }>()
 
 const gymName = ref<string>('')
-const uploadedFrom = ref<string>('')
-const uploadedTo = ref<string>('')
+const climbAtFrom = ref<string>('')
+const climbAtTo = ref<string>('')
 const minDifficulty = ref<string>('')
 const maxDifficulty = ref<string>('')
 
@@ -23,8 +23,8 @@ function handleSubmit(): void {
   }
   emit('filter', {
     gymName: gymName.value,
-    uploadedFrom: uploadedFrom.value,
-    uploadedTo: uploadedTo.value,
+    climbAtFrom: climbAtFrom.value,
+    climbAtTo: climbAtTo.value,
     minDifficulty: minDifficulty.value,
     maxDifficulty: maxDifficulty.value,
   })
@@ -40,13 +40,13 @@ function handleSubmit(): void {
       </div>
 
       <div class="form-field">
-        <label for="filter-uploaded-from">上傳日期（起）</label>
-        <input id="filter-uploaded-from" v-model="uploadedFrom" type="date" />
+        <label for="filter-climb-at-from">攀爬日期（起）</label>
+        <input id="filter-climb-at-from" v-model="climbAtFrom" type="date" />
       </div>
 
       <div class="form-field">
-        <label for="filter-uploaded-to">上傳日期（迄）</label>
-        <input id="filter-uploaded-to" v-model="uploadedTo" type="date" />
+        <label for="filter-climb-at-to">攀爬日期（迄）</label>
+        <input id="filter-climb-at-to" v-model="climbAtTo" type="date" />
       </div>
 
       <div class="form-field">

@@ -3,6 +3,7 @@ export interface CreateUserRequest {
   acc: string
   psw: string
   hasEditPermission: boolean
+  isDemoAcc: boolean
 }
 
 export interface UserResponse {
@@ -10,5 +11,6 @@ export interface UserResponse {
   username: string
   acc: string
   hasEditPermission: boolean
+  isDemoAcc: boolean
   createdAt: string
 }

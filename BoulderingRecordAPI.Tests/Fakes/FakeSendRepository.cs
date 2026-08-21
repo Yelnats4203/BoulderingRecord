@@ -13,8 +13,8 @@ public class FakeSendRepository(IEnumerable<Send>? seedSends = null) : ISendRepo
     public Task<List<Send>> GetByUploaderIdAsync(
         Guid uploaderId,
         string? gymName,
-        DateOnly? uploadedFrom,
-        DateOnly? uploadedTo,
+        DateOnly? climbAtFrom,
+        DateOnly? climbAtTo,
         int? minDifficulty,
         int? maxDifficulty,
         CancellationToken cancellationToken = default)
@@ -26,14 +26,14 @@ public class FakeSendRepository(IEnumerable<Send>? seedSends = null) : ISendRepo
             query = query.Where(s => s.GymName != null && s.GymName.Contains(gymName));
         }
 
-        if (uploadedFrom is not null)
+        if (climbAtFrom is not null)
         {
-            query = query.Where(s => s.UploadedAt >= uploadedFrom.Value);
+            query = query.Where(s => s.ClimbAt >= climbAtFrom.Value);
         }
 
-        if (uploadedTo is not null)
+        if (climbAtTo is not null)
         {
-            query = query.Where(s => s.UploadedAt <= uploadedTo.Value);
+            query = query.Where(s => s.ClimbAt <= climbAtTo.Value);
         }
 
         if (minDifficulty is not null)
@@ -46,8 +46,14 @@ public class FakeSendRepository(IEnumerable<Send>? seedSends = null) : ISendRepo
             query = query.Where(s => s.Difficulty != null && s.Difficulty <= maxDifficulty.Value);
         }
 
-        return Task.FromResult(query.OrderByDescending(s => s.UploadedAt).ToList());
+        return Task.FromResult(query.OrderByDescending(s => s.ClimbAt).ToList());
     }
+
+    public Task<int> CountByUploaderIdAndUploadedDateAsync(
+        Guid uploaderId,
+        DateOnly uploadedDate,
+        CancellationToken cancellationToken = default)
+        => Task.FromResult(_sends.Count(s => s.UploaderId == uploaderId && s.UploadedAt == uploadedDate));
 
     public Task AddAsync(Send send, CancellationToken cancellationToken = default)
     {

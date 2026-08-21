@@ -3,7 +3,7 @@ export type SendVisibility = 'Private' | 'Public' | 'Shareable'
 export interface SendResponse {
   id: string
   gymName: string | null
-  uploadedAt: string
+  climbAt: string
   difficulty: number | null
   uploaderId: string
   note: string | null
@@ -25,7 +25,7 @@ export interface CreateSendPayload {
   gymName: string
   difficulty: string
   note: string
-  uploadedAt: string
+  climbAt: string
 }
 
 export interface VideoPlaybackResponse {
@@ -35,7 +35,7 @@ export interface VideoPlaybackResponse {
 export interface VideoRecordResponse {
   id: string
   gymName: string | null
-  uploadedAt: string
+  climbAt: string
   difficulty: number | null
   note: string | null
   thumbnailUrl: string
@@ -43,15 +43,19 @@ export interface VideoRecordResponse {
 
 export interface VideoRecordFilter {
   gymName: string
-  uploadedFrom: string
-  uploadedTo: string
+  climbAtFrom: string
+  climbAtTo: string
   minDifficulty: string
   maxDifficulty: string
 }
 
 export interface UpdateSendPayload {
-  uploadedAt: string
+  climbAt: string
   gymName: string
   difficulty: string
   note: string
+}
+
+export interface UploadEligibilityResponse {
+  isAllowed: boolean
 }

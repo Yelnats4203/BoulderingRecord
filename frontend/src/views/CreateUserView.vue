@@ -8,6 +8,7 @@ const username = ref<string>('')
 const acc = ref<string>('')
 const psw = ref<string>('')
 const hasEditPermission = ref<boolean>(false)
+const isDemoAcc = ref<boolean>(true)
 const isSubmitting = ref<boolean>(false)
 const errorMessage = ref<string>('')
 const successMessage = ref<string>('')
@@ -22,12 +23,14 @@ async function handleSubmit(): Promise<void> {
       acc: acc.value,
       psw: psw.value,
       hasEditPermission: hasEditPermission.value,
+      isDemoAcc: isDemoAcc.value,
     })
     successMessage.value = '使用者建立成功。'
     username.value = ''
     acc.value = ''
     psw.value = ''
     hasEditPermission.value = false
+    isDemoAcc.value = true
   } catch {
     errorMessage.value = '建立失敗，請確認帳號是否已被使用後再試一次。'
   } finally {
@@ -64,6 +67,13 @@ async function handleSubmit(): Promise<void> {
         <label for="hasEditPermission">
           <input id="hasEditPermission" v-model="hasEditPermission" type="checkbox" />
           賦予編輯權限
+        </label>
+      </div>
+
+      <div class="form-field form-field-checkbox">
+        <label for="isDemoAcc">
+          <input id="isDemoAcc" v-model="isDemoAcc" type="checkbox" />
+          測試帳號
         </label>
       </div>
 

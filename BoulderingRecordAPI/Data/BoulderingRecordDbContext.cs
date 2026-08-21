@@ -23,12 +23,14 @@ public class BoulderingRecordDbContext(DbContextOptions options)
             entity.HasIndex(u => u.Acc).IsUnique();
             entity.Property(u => u.Psw).IsRequired();
             entity.Property(u => u.HasEditPermission).IsRequired().HasDefaultValue(false);
+            entity.Property(u => u.IsDemoAcc).IsRequired().HasDefaultValue(false);
         });
 
         modelBuilder.Entity<Send>(entity =>
         {
             entity.HasKey(s => s.Id);
             entity.Property(s => s.GymName).HasMaxLength(200);
+            entity.Property(s => s.ClimbAt).IsRequired();
             entity.Property(s => s.UploadedAt).IsRequired();
             entity.Property(s => s.VideoPublicId).IsRequired();
             entity.Property(s => s.Note).HasMaxLength(1000);

@@ -45,6 +45,7 @@ onMounted(() => {
           <th>使用者名稱</th>
           <th>帳號</th>
           <th>編輯權限</th>
+          <th>測試帳號</th>
           <th>建立時間</th>
         </tr>
       </thead>
@@ -53,6 +54,7 @@ onMounted(() => {
           <td>{{ user.username }}</td>
           <td>{{ user.acc }}</td>
           <td>{{ user.hasEditPermission ? '是' : '否' }}</td>
+          <td>{{ user.isDemoAcc ? '是' : '否' }}</td>
           <td>{{ formatDateOnly(user.createdAt) }}</td>
         </tr>
       </tbody>

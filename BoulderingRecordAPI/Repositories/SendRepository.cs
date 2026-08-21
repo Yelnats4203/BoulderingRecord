@@ -12,8 +12,8 @@ public class SendRepository(BoulderingRecordDbContext dbContext) : ISendReposito
     public async Task<List<Send>> GetByUploaderIdAsync(
         Guid uploaderId,
         string? gymName,
-        DateOnly? uploadedFrom,
-        DateOnly? uploadedTo,
+        DateOnly? climbAtFrom,
+        DateOnly? climbAtTo,
         int? minDifficulty,
         int? maxDifficulty,
         CancellationToken cancellationToken = default)
@@ -25,14 +25,14 @@ public class SendRepository(BoulderingRecordDbContext dbContext) : ISendReposito
             query = query.Where(s => s.GymName != null && s.GymName.Contains(gymName));
         }
 
-        if (uploadedFrom is not null)
+        if (climbAtFrom is not null)
         {
-            query = query.Where(s => s.UploadedAt >= uploadedFrom.Value);
+            query = query.Where(s => s.ClimbAt >= climbAtFrom.Value);
         }
 
-        if (uploadedTo is not null)
+        if (climbAtTo is not null)
         {
-            query = query.Where(s => s.UploadedAt <= uploadedTo.Value);
+            query = query.Where(s => s.ClimbAt <= climbAtTo.Value);
         }
 
         if (minDifficulty is not null)
@@ -46,8 +46,14 @@ public class SendRepository(BoulderingRecordDbContext dbContext) : ISendReposito
         }
 
         List<Send> sends = await query.ToListAsync(cancellationToken);
-        return sends.OrderByDescending(s => s.UploadedAt).ToList();
+        return sends.OrderByDescending(s => s.ClimbAt).ToList();
     }
+
+    public Task<int> CountByUploaderIdAndUploadedDateAsync(
+        Guid uploaderId,
+        DateOnly uploadedDate,
+        CancellationToken cancellationToken = default)
+        => dbContext.Sends.CountAsync(s => s.UploaderId == uploaderId && s.UploadedAt == uploadedDate, cancellationToken);
 
     public async Task AddAsync(Send send, CancellationToken cancellationToken = default)
         => await dbContext.Sends.AddAsync(send, cancellationToken);

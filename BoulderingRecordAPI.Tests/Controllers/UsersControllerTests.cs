@@ -23,7 +23,7 @@ public class UsersControllerTests
         UsersController controller = CreateController(userRepository);
 
         IActionResult result = await controller.Create(
-            new CreateUserRequest("新使用者", "newacc", "Password123!", true),
+            new CreateUserRequest("新使用者", "newacc", "Password123!", true, false),
             CancellationToken.None);
 
         ObjectResult created = Assert.IsType<ObjectResult>(result);
@@ -39,6 +39,25 @@ public class UsersControllerTests
     }
 
     [Fact]
+    public async Task Create_IsDemoAccTrue_PersistsDemoAccountFlag()
+    {
+        FakeUserRepository userRepository = new FakeUserRepository([]);
+        UsersController controller = CreateController(userRepository);
+
+        IActionResult result = await controller.Create(
+            new CreateUserRequest("測試帳號", "demoacc", "Password123!", false, true),
+            CancellationToken.None);
+
+        ObjectResult created = Assert.IsType<ObjectResult>(result);
+        UserResponse response = Assert.IsType<UserResponse>(created.Value);
+        Assert.True(response.IsDemoAcc);
+
+        User? stored = await userRepository.GetByAccAsync("demoacc", CancellationToken.None);
+        Assert.NotNull(stored);
+        Assert.True(stored!.IsDemoAcc);
+    }
+
+    [Fact]
     public async Task Create_DuplicateAcc_ReturnsBadRequest()
     {
         User existing = new User { Username = "既有使用者", Acc = "dupacc", Psw = "hashed", CreatedAt = DateTime.UtcNow };
@@ -46,7 +65,7 @@ public class UsersControllerTests
         UsersController controller = CreateController(userRepository);
 
         IActionResult result = await controller.Create(
-            new CreateUserRequest("新使用者", "dupacc", "Password123!", false),
+            new CreateUserRequest("新使用者", "dupacc", "Password123!", false, false),
             CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(result);
@@ -61,7 +80,7 @@ public class UsersControllerTests
         UsersController controller = CreateController(new FakeUserRepository([]));
 
         IActionResult result = await controller.Create(
-            new CreateUserRequest(username, acc, psw, false), CancellationToken.None);
+            new CreateUserRequest(username, acc, psw, false, false), CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
@@ -76,7 +95,7 @@ public class UsersControllerTests
         UsersController controller = CreateController(new FakeUserRepository([]));
 
         IActionResult result = await controller.Create(
-            new CreateUserRequest("新使用者", "newacc", psw, false), CancellationToken.None);
+            new CreateUserRequest("新使用者", "newacc", psw, false, false), CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(result);
     }

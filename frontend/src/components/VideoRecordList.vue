@@ -31,7 +31,7 @@ function formatDateOnly(value: string): string {
     >
       <img class="video-thumbnail" :src="record.thumbnailUrl" alt="影片縮圖" />
       <div class="video-card-caption">
-        {{ record.gymName ?? '-' }} - {{ formatDifficulty(record.difficulty) }} - {{ formatDateOnly(record.uploadedAt) }}
+        {{ record.gymName ?? '-' }} - {{ formatDifficulty(record.difficulty) }} - {{ formatDateOnly(record.climbAt) }}
       </div>
     </button>
   </div>

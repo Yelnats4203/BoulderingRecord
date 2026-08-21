@@ -16,7 +16,12 @@ public class Send
     public string? GymName { get; set; }
 
     /// <summary>
-    /// 影片上傳日期。
+    /// 攀爬日期，前端新增／編輯時可輸入。
+    /// </summary>
+    public DateOnly ClimbAt { get; set; }
+
+    /// <summary>
+    /// 紀錄建立日期，由後端固定寫入，不對前端開放編輯或顯示。
     /// </summary>
     public DateOnly UploadedAt { get; set; }
 

@@ -52,6 +52,7 @@ public class UsersController(IUserRepository userRepository) : ControllerBase
             Username = request.Username,
             Acc = request.Acc,
             HasEditPermission = request.HasEditPermission,
+            IsDemoAcc = request.IsDemoAcc,
             CreatedAt = DateTime.UtcNow,
         };
         user.Psw = PasswordHasher.HashPassword(user, request.Psw);

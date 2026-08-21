@@ -23,6 +23,9 @@ namespace BoulderingRecordAPI.Migrations.Sqlite
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateOnly>("ClimbAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("Difficulty")
                         .HasColumnType("INTEGER");
 
@@ -93,6 +96,11 @@ namespace BoulderingRecordAPI.Migrations.Sqlite
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("HasEditPermission")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsDemoAcc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(false);
