@@ -24,7 +24,7 @@ public class SendsControllerTests
         SendsController controller = new SendsController(
             sendRepository ?? new FakeSendRepository(),
             videoStorageService ?? new FakeVideoStorageService(),
-            userRepository ?? new FakeUserRepository([]));
+            userRepository ?? new FakeUserRepository([new User { Id = TestUploaderId, IsDemoAcc = false }]));
 
         DefaultHttpContext httpContext = new DefaultHttpContext();
         if (authenticated)
@@ -147,6 +147,63 @@ public class SendsControllerTests
             CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Upload_DemoAccountAtDailyLimit_ReturnsBadRequestAndDoesNotCreateRecord()
+    {
+        User user = new User { Id = TestUploaderId, IsDemoAcc = true };
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        Send[] seed = Enumerable.Range(0, 5)
+            .Select(_ => new Send { UploaderId = TestUploaderId, UploadedAt = today, ClimbAt = today, VideoPublicId = Guid.CreateVersion7().ToString() })
+            .ToArray();
+        FakeSendRepository repository = new FakeSendRepository(seed);
+        SendsController controller = CreateController(repository, userRepository: new FakeUserRepository([user]));
+        Guid sendId = Guid.CreateVersion7();
+
+        IActionResult result = await controller.Upload(
+            new CreateSendRequest(sendId, "測試岩館", 5, "備註"),
+            CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        Send? send = await repository.GetByIdAsync(sendId, CancellationToken.None);
+        Assert.Null(send);
+    }
+
+    [Fact]
+    public async Task Upload_DemoAccountUnderDailyLimit_Succeeds()
+    {
+        User user = new User { Id = TestUploaderId, IsDemoAcc = true };
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        Send[] seed = Enumerable.Range(0, 4)
+            .Select(_ => new Send { UploaderId = TestUploaderId, UploadedAt = today, ClimbAt = today, VideoPublicId = Guid.CreateVersion7().ToString() })
+            .ToArray();
+        SendsController controller = CreateController(new FakeSendRepository(seed), userRepository: new FakeUserRepository([user]));
+
+        IActionResult result = await controller.Upload(
+            new CreateSendRequest(Guid.CreateVersion7(), "測試岩館", 5, "備註"),
+            CancellationToken.None);
+
+        ObjectResult created = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status201Created, created.StatusCode);
+    }
+
+    [Fact]
+    public async Task Upload_NonDemoAccountBeyondFiveUploadsToday_StillSucceeds()
+    {
+        User user = new User { Id = TestUploaderId, IsDemoAcc = false };
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        Send[] seed = Enumerable.Range(0, 10)
+            .Select(_ => new Send { UploaderId = TestUploaderId, UploadedAt = today, ClimbAt = today, VideoPublicId = Guid.CreateVersion7().ToString() })
+            .ToArray();
+        SendsController controller = CreateController(new FakeSendRepository(seed), userRepository: new FakeUserRepository([user]));
+
+        IActionResult result = await controller.Upload(
+            new CreateSendRequest(Guid.CreateVersion7(), "測試岩館", 5, "備註"),
+            CancellationToken.None);
+
+        ObjectResult created = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status201Created, created.StatusCode);
     }
 
     [Fact]

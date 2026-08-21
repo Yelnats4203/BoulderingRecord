@@ -39,6 +39,7 @@ public class SendsController(
 
     /// <summary>
     /// 確認目前登入使用者是否可繼續上傳影片；僅測試帳號（<see cref="User.IsDemoAcc"/>）受當日上傳筆數限制。
+    /// 這個端點僅供前端在壓縮影片前提早提示使用者，實際限制由 <see cref="Upload"/> 端點強制執行。
     /// </summary>
     [TokenAuthorize]
     [HttpGet("upload-eligibility")]
@@ -58,18 +59,13 @@ public class SendsController(
             return Unauthorized();
         }
 
-        if (!user.IsDemoAcc)
-        {
-            return Ok(new UploadEligibilityResponse(true));
-        }
-
-        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-        int todayCount = await sendRepository.CountByUploaderIdAndUploadedDateAsync(uploaderId.Value, today, cancellationToken);
-        return Ok(new UploadEligibilityResponse(todayCount < 5));
+        bool isAllowed = await IsUploadAllowedAsync(user, cancellationToken);
+        return Ok(new UploadEligibilityResponse(isAllowed));
     }
 
     /// <summary>
     /// 建立完攀紀錄，須於影片已直接上傳至 Cloudinary 後呼叫；上傳者由後端指派，攀爬日期若未提供則預設為今日，上傳日期一律為今日。
+    /// 測試帳號（<see cref="User.IsDemoAcc"/>）當日已達上傳筆數上限時會被拒絕，此限制在此端點強制執行，不只依賴前端的 <see cref="GetUploadEligibility"/> 檢查。
     /// </summary>
     [TokenAuthorize]
     [HttpPost]
@@ -82,6 +78,17 @@ public class SendsController(
         if (uploaderId is null)
         {
             return Unauthorized();
+        }
+
+        User? uploader = await userRepository.GetByIdAsync(uploaderId.Value, cancellationToken);
+        if (uploader is null)
+        {
+            return Unauthorized();
+        }
+
+        if (!await IsUploadAllowedAsync(uploader, cancellationToken))
+        {
+            return BadRequest("測試帳號一日僅能上傳5筆。");
         }
 
         // Cloudinary 上傳時另帶有 folder 參數，實際儲存位置會是 folder 與 public_id 相接後的路徑。
@@ -232,5 +239,17 @@ public class SendsController(
     {
         string? value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return Guid.TryParse(value, out Guid id) ? id : null;
+    }
+
+    private async Task<bool> IsUploadAllowedAsync(User user, CancellationToken cancellationToken)
+    {
+        if (!user.IsDemoAcc)
+        {
+            return true;
+        }
+
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        int todayCount = await sendRepository.CountByUploaderIdAndUploadedDateAsync(user.Id, today, cancellationToken);
+        return todayCount < 5;
     }
 }
