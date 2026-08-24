@@ -15,6 +15,7 @@ builder.Services.AddBoulderingRecordDatabase(builder.Configuration);
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISendRepository, SendRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
+builder.Services.AddScoped<IFriendRequestRepository, FriendRequestRepository>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddCloudinaryVideoStorage(builder.Configuration);

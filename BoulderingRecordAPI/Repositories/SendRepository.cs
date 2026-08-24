@@ -55,6 +55,29 @@ public class SendRepository(BoulderingRecordDbContext dbContext) : ISendReposito
         CancellationToken cancellationToken = default)
         => dbContext.Sends.CountAsync(s => s.UploaderId == uploaderId && s.UploadedAt == uploadedDate, cancellationToken);
 
+    public Task<List<Send>> GetPublicByUploaderIdAsync(Guid uploaderId, CancellationToken cancellationToken = default)
+        => dbContext.Sends
+            .Where(s => s.UploaderId == uploaderId && s.Visibility == SendVisibility.Public)
+            .OrderByDescending(s => s.ClimbAt)
+            .ToListAsync(cancellationToken);
+
+    public Task<List<Send>> GetRecentPublicByUploaderIdsAsync(
+        IReadOnlyCollection<Guid> uploaderIds,
+        int take,
+        CancellationToken cancellationToken = default)
+    {
+        if (uploaderIds.Count == 0)
+        {
+            return Task.FromResult(new List<Send>());
+        }
+
+        return dbContext.Sends
+            .Where(s => uploaderIds.Contains(s.UploaderId) && s.Visibility == SendVisibility.Public)
+            .OrderByDescending(s => s.UploadedAt)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Send send, CancellationToken cancellationToken = default)
         => await dbContext.Sends.AddAsync(send, cancellationToken);
 

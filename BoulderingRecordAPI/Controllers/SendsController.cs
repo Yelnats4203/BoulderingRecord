@@ -109,6 +109,7 @@ public class SendsController(
             ClimbAt = request.ClimbAt ?? DateOnly.FromDateTime(DateTime.UtcNow),
             UploadedAt = DateOnly.FromDateTime(DateTime.UtcNow),
             VideoPublicId = publicId,
+            Visibility = request.IsPublic ? SendVisibility.Public : SendVisibility.Private,
         };
 
         await sendRepository.AddAsync(send, cancellationToken);

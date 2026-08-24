@@ -8,6 +8,7 @@ import LoadingSpinner from './LoadingSpinner.vue'
 
 const props = defineProps<{
   record: VideoRecordResponse
+  readonly?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -200,7 +201,7 @@ async function handleConfirmDelete(): Promise<void> {
         <div class="video-row"><span class="video-label">攀爬日期</span><span>{{ formatDate(record.climbAt) }}</span></div>
         <div class="video-row"><span class="video-label">備註</span><span>{{ record.note ?? '-' }}</span></div>
 
-        <div class="detail-actions">
+        <div v-if="!props.readonly" class="detail-actions">
           <button class="btn-secondary" type="button" @click="startEditing">編輯</button>
           <button class="btn-danger" type="button" @click="isConfirmingDelete = true">刪除</button>
         </div>

@@ -18,6 +18,7 @@ const climbAt = ref<string>(todayDateOnly())
 const gymName = ref<string>('')
 const difficulty = ref<string>('')
 const note = ref<string>('')
+const isPublic = ref<boolean>(true)
 const isCompressing = ref<boolean>(false)
 const compressionProgress = ref<number>(0)
 const isUploading = ref<boolean>(false)
@@ -90,6 +91,7 @@ async function handleUpload(): Promise<void> {
       difficulty: difficulty.value,
       note: note.value,
       climbAt: climbAt.value,
+      isPublic: isPublic.value,
     })
     uploadSuccessMessage.value = '上傳成功。'
     videoFile.value = null
@@ -97,6 +99,7 @@ async function handleUpload(): Promise<void> {
     gymName.value = ''
     difficulty.value = ''
     note.value = ''
+    isPublic.value = true
     const fileInput = document.getElementById('video') as HTMLInputElement | null
     if (fileInput) {
       fileInput.value = ''
@@ -157,6 +160,10 @@ async function handleUpload(): Promise<void> {
         <textarea id="note" v-model="note" placeholder="可輸入Crux等等"></textarea>
       </div>
 
+      <div class="form-field form-field-checkbox">
+        <label><input v-model="isPublic" type="checkbox" /> 公開影片（好友可見）</label>
+      </div>
+
       <button
         class="btn-primary"
         :class="{ 'btn-loading': isCompressing || isUploading }"
@@ -186,6 +193,18 @@ async function handleUpload(): Promise<void> {
   color: #16a34a;
   font-size: 0.9rem;
   margin: 0 0 12px;
+}
+
+.form-field-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.form-field-checkbox input {
+  width: auto;
+  min-height: auto;
 }
 
 .difficulty-input-wrapper {

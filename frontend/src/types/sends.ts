@@ -26,6 +26,7 @@ export interface CreateSendPayload {
   difficulty: string
   note: string
   climbAt: string
+  isPublic: boolean
 }
 
 export interface VideoPlaybackResponse {

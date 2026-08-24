@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using BoulderingRecordAPI.Entities;
 using BoulderingRecordAPI.Filters;
+using BoulderingRecordAPI.Models.Friends;
 using BoulderingRecordAPI.Models.Users;
 using BoulderingRecordAPI.Repositories;
 using BoulderingRecordAPI.Validation;
@@ -9,11 +11,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace BoulderingRecordAPI.Controllers;
 
 /// <summary>
-/// 處理使用者帳號的建立等端點。
+/// 處理使用者帳號的建立、搜尋等端點。
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-public class UsersController(IUserRepository userRepository) : ControllerBase
+public class UsersController(IUserRepository userRepository, IFriendRequestRepository friendRequestRepository) : ControllerBase
 {
     private static readonly PasswordHasher<User> PasswordHasher = new();
 
@@ -76,5 +78,69 @@ public class UsersController(IUserRepository userRepository) : ControllerBase
     {
         List<User> users = await userRepository.GetAllAsync(cancellationToken);
         return Ok(users.Select(UserResponse.FromEntity));
+    }
+
+    /// <summary>
+    /// 依使用者名稱模糊搜尋使用者，供好友邀請功能使用；不含帳號、密碼等敏感欄位，並標示與目前登入使用者的好友關係狀態。
+    /// </summary>
+    [TokenAuthorize]
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(IEnumerable<UserSearchResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Search(string? keyword, CancellationToken cancellationToken)
+    {
+        Guid? currentUserId = GetCurrentUserId();
+        if (currentUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        if (string.IsNullOrWhiteSpace(keyword))
+        {
+            return Ok(Array.Empty<UserSearchResponse>());
+        }
+
+        User? currentUser = await userRepository.GetByIdAsync(currentUserId.Value, cancellationToken);
+        bool excludeEditPermissionUsers = !(currentUser?.HasEditPermission ?? false);
+
+        List<User> candidates = await userRepository.SearchByUsernameAsync(
+            keyword, currentUserId.Value, excludeEditPermissionUsers, cancellationToken);
+        List<Guid> candidateIds = candidates.Select(u => u.Id).ToList();
+        List<FriendRequest> relations = await friendRequestRepository.GetRelationsForUsersAsync(
+            currentUserId.Value, candidateIds, cancellationToken);
+
+        List<UserSearchResponse> results = candidates.Select(candidate =>
+        {
+            FriendRequest? relation = relations.FirstOrDefault(r =>
+                r.RequesterId == candidate.Id || r.AddresseeId == candidate.Id);
+
+            FriendRelationStatus status;
+            if (relation is null)
+            {
+                status = FriendRelationStatus.None;
+            }
+            else if (relation.Status == FriendRequestStatus.Accepted)
+            {
+                status = FriendRelationStatus.Friends;
+            }
+            else if (relation.RequesterId == currentUserId.Value)
+            {
+                status = FriendRelationStatus.RequestSentByMe;
+            }
+            else
+            {
+                status = FriendRelationStatus.RequestReceivedFromThem;
+            }
+
+            return new UserSearchResponse(candidate.Id, candidate.Username, status, relation?.Id);
+        }).ToList();
+
+        return Ok(results);
+    }
+
+    private Guid? GetCurrentUserId()
+    {
+        string? value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(value, out Guid id) ? id : null;
     }
 }

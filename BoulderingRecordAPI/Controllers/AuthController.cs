@@ -44,7 +44,7 @@ public class AuthController(
         (string token, DateTimeOffset expiresAt) = tokenService.GenerateToken(user);
         tokenStore.SetActiveToken(user.Acc, token, expiresAt);
 
-        return Ok(new LoginResponse(token, expiresAt, user.HasEditPermission));
+        return Ok(new LoginResponse(token, expiresAt, user.HasEditPermission, user.Id));
     }
 
     /// <summary>

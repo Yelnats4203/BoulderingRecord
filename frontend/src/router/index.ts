@@ -9,6 +9,8 @@ import UserListView from '../views/UserListView.vue'
 import ChangePasswordView from '../views/ChangePasswordView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import CreateSessionView from '../views/CreateSessionView.vue'
+import FriendListView from '../views/FriendListView.vue'
+import FriendProfileView from '../views/FriendProfileView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -27,6 +29,13 @@ const router = createRouter({
         },
         { path: 'upload', name: 'upload', component: UploadView, meta: { requiresAuth: true } },
         { path: 'videos', name: 'videos', component: VideoRecordsView, meta: { requiresAuth: true } },
+        { path: 'friends', name: 'friends', component: FriendListView, meta: { requiresAuth: true } },
+        {
+          path: 'friends/:userId',
+          name: 'friendProfile',
+          component: FriendProfileView,
+          meta: { requiresAuth: true },
+        },
         {
           path: 'change-password',
           name: 'changePassword',

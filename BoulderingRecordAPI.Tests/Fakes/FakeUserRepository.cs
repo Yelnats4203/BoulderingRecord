@@ -16,6 +16,22 @@ public class FakeUserRepository(IEnumerable<User> seedUsers) : IUserRepository
     public Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default)
         => Task.FromResult(_users.OrderBy(u => u.CreatedAt).ToList());
 
+    public Task<List<User>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+        => Task.FromResult(_users.Where(u => ids.Contains(u.Id)).ToList());
+
+    public Task<List<User>> SearchByUsernameAsync(
+        string keyword, Guid excludeUserId, bool excludeEditPermissionUsers, CancellationToken cancellationToken = default)
+    {
+        IEnumerable<User> query = _users.Where(u => u.Id != excludeUserId && u.Username.Contains(keyword));
+
+        if (excludeEditPermissionUsers)
+        {
+            query = query.Where(u => !u.HasEditPermission);
+        }
+
+        return Task.FromResult(query.OrderBy(u => u.Username).Take(20).ToList());
+    }
+
     public Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
         _users.Add(user);

@@ -56,6 +56,7 @@ export function createSend(payload: CreateSendPayload): Promise<SendResponse> {
       difficulty: payload.difficulty ? Number(payload.difficulty) : null,
       note: payload.note || null,
       climbAt: payload.climbAt || undefined,
+      isPublic: payload.isPublic,
     })
     .then((response) => response.data)
 }

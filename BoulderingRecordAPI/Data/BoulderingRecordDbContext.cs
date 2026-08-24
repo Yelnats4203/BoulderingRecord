@@ -12,6 +12,8 @@ public class BoulderingRecordDbContext(DbContextOptions options)
 
     public DbSet<Session> Sessions => Set<Session>();
 
+    public DbSet<FriendRequest> FriendRequests => Set<FriendRequest>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -59,6 +61,27 @@ public class BoulderingRecordDbContext(DbContextOptions options)
                 gradeRecord.Property(g => g.CompletedCount).IsRequired();
                 gradeRecord.Property(g => g.UncompletedCount).IsRequired();
             });
+        });
+
+        modelBuilder.Entity<FriendRequest>(entity =>
+        {
+            entity.HasKey(f => f.Id);
+            entity.Property(f => f.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+            entity.Property(f => f.CreatedAt).IsRequired();
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(f => f.RequesterId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(f => f.AddresseeId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            entity.HasIndex(f => new { f.RequesterId, f.AddresseeId }).IsUnique();
         });
     }
 }

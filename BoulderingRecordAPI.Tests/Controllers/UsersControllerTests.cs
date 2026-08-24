@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BoulderingRecordAPI.Controllers;
 using BoulderingRecordAPI.Entities;
 using BoulderingRecordAPI.Models.Users;
@@ -11,8 +12,20 @@ public class UsersControllerTests
 {
     private static UsersController CreateController(FakeUserRepository userRepository)
     {
-        UsersController controller = new UsersController(userRepository);
+        UsersController controller = new UsersController(userRepository, new FakeFriendRequestRepository());
         controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+        return controller;
+    }
+
+    private static UsersController CreateAuthenticatedController(FakeUserRepository userRepository, Guid currentUserId)
+    {
+        UsersController controller = new UsersController(userRepository, new FakeFriendRequestRepository());
+        ClaimsIdentity identity = new ClaimsIdentity(
+            [new Claim(ClaimTypes.NameIdentifier, currentUserId.ToString())], "Test");
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) },
+        };
         return controller;
     }
 
@@ -115,5 +128,55 @@ public class UsersControllerTests
         Assert.Equal(2, responses.Count);
         Assert.Contains(responses, r => r.Acc == "acc1" && r.Username == "使用者一" && r.HasEditPermission);
         Assert.Contains(responses, r => r.Acc == "acc2" && r.Username == "使用者二" && !r.HasEditPermission);
+    }
+
+    [Fact]
+    public async Task Search_CurrentUserWithoutEditPermission_ExcludesAdminCandidates()
+    {
+        User currentUser = new User { Username = "一般搜尋者", Acc = "searcher", Psw = "hashed", HasEditPermission = false, CreatedAt = DateTime.UtcNow };
+        User normalCandidate = new User { Username = "一般攀岩者", Acc = "climber", Psw = "hashed", HasEditPermission = false, CreatedAt = DateTime.UtcNow };
+        User adminCandidate = new User { Username = "管理攀岩者", Acc = "admin1", Psw = "hashed", HasEditPermission = true, CreatedAt = DateTime.UtcNow };
+        FakeUserRepository userRepository = new FakeUserRepository([currentUser, normalCandidate, adminCandidate]);
+        UsersController controller = CreateAuthenticatedController(userRepository, currentUser.Id);
+
+        IActionResult result = await controller.Search("攀岩", CancellationToken.None);
+
+        OkObjectResult ok = Assert.IsType<OkObjectResult>(result);
+        List<UserSearchResponse> responses = Assert.IsAssignableFrom<IEnumerable<UserSearchResponse>>(ok.Value).ToList();
+        Assert.Contains(responses, r => r.Id == normalCandidate.Id);
+        Assert.DoesNotContain(responses, r => r.Id == adminCandidate.Id);
+    }
+
+    [Fact]
+    public async Task Search_CurrentUserWithEditPermission_IncludesAllCandidates()
+    {
+        User currentUser = new User { Username = "管理搜尋者", Acc = "admin-searcher", Psw = "hashed", HasEditPermission = true, CreatedAt = DateTime.UtcNow };
+        User normalCandidate = new User { Username = "一般攀岩者", Acc = "climber", Psw = "hashed", HasEditPermission = false, CreatedAt = DateTime.UtcNow };
+        User adminCandidate = new User { Username = "管理攀岩者", Acc = "admin1", Psw = "hashed", HasEditPermission = true, CreatedAt = DateTime.UtcNow };
+        FakeUserRepository userRepository = new FakeUserRepository([currentUser, normalCandidate, adminCandidate]);
+        UsersController controller = CreateAuthenticatedController(userRepository, currentUser.Id);
+
+        IActionResult result = await controller.Search("攀岩", CancellationToken.None);
+
+        OkObjectResult ok = Assert.IsType<OkObjectResult>(result);
+        List<UserSearchResponse> responses = Assert.IsAssignableFrom<IEnumerable<UserSearchResponse>>(ok.Value).ToList();
+        Assert.Contains(responses, r => r.Id == normalCandidate.Id);
+        Assert.Contains(responses, r => r.Id == adminCandidate.Id);
+    }
+
+    [Fact]
+    public async Task Search_ExcludesCurrentUserFromResults()
+    {
+        User currentUser = new User { Username = "攀岩搜尋者", Acc = "searcher", Psw = "hashed", HasEditPermission = false, CreatedAt = DateTime.UtcNow };
+        User otherUser = new User { Username = "攀岩夥伴", Acc = "partner", Psw = "hashed", HasEditPermission = false, CreatedAt = DateTime.UtcNow };
+        FakeUserRepository userRepository = new FakeUserRepository([currentUser, otherUser]);
+        UsersController controller = CreateAuthenticatedController(userRepository, currentUser.Id);
+
+        IActionResult result = await controller.Search("攀岩", CancellationToken.None);
+
+        OkObjectResult ok = Assert.IsType<OkObjectResult>(result);
+        List<UserSearchResponse> responses = Assert.IsAssignableFrom<IEnumerable<UserSearchResponse>>(ok.Value).ToList();
+        Assert.Contains(responses, r => r.Id == otherUser.Id);
+        Assert.DoesNotContain(responses, r => r.Id == currentUser.Id);
     }
 }

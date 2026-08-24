@@ -8,4 +8,11 @@ namespace BoulderingRecordAPI.Models.Sends;
 /// <param name="Difficulty">攀岩難度。</param>
 /// <param name="Note">備註。</param>
 /// <param name="ClimbAt">攀爬日期，未提供時預設為今日。</param>
-public record CreateSendRequest(Guid SendId, string? GymName, int? Difficulty, string? Note, DateOnly? ClimbAt = null);
+/// <param name="IsPublic">是否將此紀錄設為公開（好友可見），預設為公開。</param>
+public record CreateSendRequest(
+    Guid SendId,
+    string? GymName,
+    int? Difficulty,
+    string? Note,
+    DateOnly? ClimbAt = null,
+    bool IsPublic = true);

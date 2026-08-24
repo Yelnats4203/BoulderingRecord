@@ -10,6 +10,11 @@ public interface IUserRepository
 
     Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default);
 
+    Task<List<User>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
+
+    Task<List<User>> SearchByUsernameAsync(
+        string keyword, Guid excludeUserId, bool excludeEditPermissionUsers, CancellationToken cancellationToken = default);
+
     Task AddAsync(User user, CancellationToken cancellationToken = default);
 
     Task SaveChangesAsync(CancellationToken cancellationToken = default);

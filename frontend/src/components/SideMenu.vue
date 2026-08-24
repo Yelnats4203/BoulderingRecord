@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { logout as logoutApi } from '../api/auth'
 import { useAuthStore } from '../stores/auth'
+import { useFriendRequestsStore } from '../stores/friendRequests'
 import LoadingSpinner from './LoadingSpinner.vue'
 
 const authStore = useAuthStore()
+const friendRequestsStore = useFriendRequestsStore()
 const router = useRouter()
 
 const isLoggingOut = ref<boolean>(false)
@@ -19,10 +21,15 @@ async function handleLogout(): Promise<void> {
     await logoutApi()
   } finally {
     authStore.clearSession()
+    friendRequestsStore.clear()
     isLoggingOut.value = false
     await router.push({ name: 'login' })
   }
 }
+
+onMounted(() => {
+  void friendRequestsStore.refreshPendingCount()
+})
 </script>
 
 <template>
@@ -41,6 +48,12 @@ async function handleLogout(): Promise<void> {
       </li>
       <li>
         <RouterLink class="side-menu-link" :to="{ name: 'videos' }">影片紀錄清單</RouterLink>
+      </li>
+      <li>
+        <RouterLink class="side-menu-link" :to="{ name: 'friends' }">
+          好友
+          <span v-if="friendRequestsStore.pendingCount > 0" class="side-menu-badge" aria-label="有待處理的好友邀請"></span>
+        </RouterLink>
       </li>
       <li v-if="authStore.hasEditPermission">
         <RouterLink class="side-menu-link" :to="{ name: 'users' }">新增使用者</RouterLink>
@@ -91,12 +104,22 @@ async function handleLogout(): Promise<void> {
 }
 
 .side-menu-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding: 10px 12px;
   border-radius: var(--radius);
   color: var(--color-text);
   text-decoration: none;
   font-weight: 600;
+}
+
+.side-menu-badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-danger);
 }
 
 .side-menu-link:hover {

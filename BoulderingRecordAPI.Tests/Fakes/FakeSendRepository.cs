@@ -55,6 +55,22 @@ public class FakeSendRepository(IEnumerable<Send>? seedSends = null) : ISendRepo
         CancellationToken cancellationToken = default)
         => Task.FromResult(_sends.Count(s => s.UploaderId == uploaderId && s.UploadedAt == uploadedDate));
 
+    public Task<List<Send>> GetPublicByUploaderIdAsync(Guid uploaderId, CancellationToken cancellationToken = default)
+        => Task.FromResult(_sends
+            .Where(s => s.UploaderId == uploaderId && s.Visibility == Entities.SendVisibility.Public)
+            .OrderByDescending(s => s.ClimbAt)
+            .ToList());
+
+    public Task<List<Send>> GetRecentPublicByUploaderIdsAsync(
+        IReadOnlyCollection<Guid> uploaderIds,
+        int take,
+        CancellationToken cancellationToken = default)
+        => Task.FromResult(_sends
+            .Where(s => uploaderIds.Contains(s.UploaderId) && s.Visibility == Entities.SendVisibility.Public)
+            .OrderByDescending(s => s.UploadedAt)
+            .Take(take)
+            .ToList());
+
     public Task AddAsync(Send send, CancellationToken cancellationToken = default)
     {
         _sends.Add(send);

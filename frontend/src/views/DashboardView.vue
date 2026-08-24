@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { getSessions } from '../api/sessions'
+import { getRecentFriendVideos } from '../api/friends'
 import type { SessionResponse } from '../types/sessions'
+import type { FriendVideo } from '../types/friends'
 import { calculateWeeklyFrequency, countByGym, getDefaultDateRange, groupByDay, groupByGrade } from '../utils/sessionStats'
 import BarChart from '../components/BarChart.vue'
 import DashboardFilterForm from '../components/DashboardFilterForm.vue'
@@ -31,8 +33,25 @@ async function fetchSessions(range: { dateFrom: string; dateTo: string }): Promi
   }
 }
 
+const friendVideos = ref<FriendVideo[]>([])
+const friendVideosLoading = ref<boolean>(false)
+const friendVideosErrorMessage = ref<string>('')
+
+async function fetchFriendVideos(): Promise<void> {
+  friendVideosLoading.value = true
+  friendVideosErrorMessage.value = ''
+  try {
+    friendVideos.value = await getRecentFriendVideos()
+  } catch {
+    friendVideosErrorMessage.value = '讀取好友動態失敗，請稍後再試。'
+  } finally {
+    friendVideosLoading.value = false
+  }
+}
+
 onMounted(() => {
   void fetchSessions({ dateFrom: defaultDateFrom, dateTo: defaultDateTo })
+  void fetchFriendVideos()
 })
 
 const dailyStats = computed(() => groupByDay(sessions.value))
@@ -56,6 +75,24 @@ const gradeDatasets = computed(() => [
     <div class="page-header">
       <h2>儀表板</h2>
     </div>
+
+    <section class="dashboard-section friend-activity-section">
+      <h3>好友動態</h3>
+      <p v-if="friendVideosErrorMessage" class="error-text">{{ friendVideosErrorMessage }}</p>
+      <p v-else-if="friendVideosLoading" class="hint-text">載入中...</p>
+      <div v-else-if="friendVideos.length > 0" class="friend-video-grid">
+        <RouterLink
+          v-for="item in friendVideos"
+          :key="item.video.id"
+          class="card friend-video-card"
+          :to="{ name: 'friendProfile', params: { userId: item.friendUserId }, query: { username: item.friendUsername } }"
+        >
+          <img class="video-thumbnail" :src="item.video.thumbnailUrl" alt="影片縮圖" />
+          <div class="friend-video-caption">{{ item.friendUsername }} · {{ item.video.gymName ?? '-' }}</div>
+        </RouterLink>
+      </div>
+      <p v-else class="card empty-state">好友尚無公開影片。</p>
+    </section>
 
     <DashboardFilterForm
       :is-loading="isLoading"
@@ -122,6 +159,46 @@ const gradeDatasets = computed(() => [
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.friend-activity-section {
+  margin: 16px 0 24px;
+}
+
+.friend-video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.friend-video-card {
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+}
+
+.friend-video-card .video-thumbnail {
+  width: 100%;
+  height: 80%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--color-bg);
+}
+
+.friend-video-caption {
+  height: 20%;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-section h3 {

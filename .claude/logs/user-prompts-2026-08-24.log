@@ -1,0 +1,9 @@
+﻿[2026-08-24 14:22:27] 請先讀取memory，上個session做的好友相關功能；開啟網頁及API服務
+[2026-08-24 15:21:30] 修改搜尋好友功能，若HasEditPermission為false的使用者，無法搜尋到HasEditPermission為true的使用者
+[2026-08-24 15:22:21] 1. 修改搜尋好友功能，若HasEditPermission為false的使用者，無法搜尋到HasEditPermission為true的使用者
+2. 若登入時有還未處理的好友邀請，在menu上新增一個紅點提示
+[2026-08-24 16:04:14] HasEditPermissio
+[2026-08-24 16:04:40] 補上好友相關功能的API測試
+[2026-08-24 16:11:42] Claude.md，新增API端點應在API有測試，另測試內容應接寫於測試專案的readme
+[2026-08-24 16:15:22] 先獨立commit claude.md
+[2026-08-24 16:20:29] commit
