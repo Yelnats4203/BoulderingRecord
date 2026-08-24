@@ -16,6 +16,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISendRepository, SendRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IFriendRequestRepository, FriendRequestRepository>();
+builder.Services.AddScoped<IGymRepository, GymRepository>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddCloudinaryVideoStorage(builder.Configuration);

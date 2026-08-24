@@ -118,6 +118,14 @@ dotnet test
 | `Search_CurrentUserWithEditPermission_IncludesAllCandidates` | 目前登入者本身具編輯權限時，搜尋結果不受過濾，同時包含一般使用者與其他管理員。 |
 | `Search_ExcludesCurrentUserFromResults` | 搜尋結果不包含使用者自己。 |
 
+### GymsController（`Controllers/GymsControllerTests.cs`）
+
+| 測試案例 | 說明 |
+| --- | --- |
+| `GetNames_NotAuthenticated_ReturnsUnauthorized` | 未登入使用者查詢岩館名稱清單時，回應 401。 |
+| `GetNames_HasGymNames_ReturnsDistinctSortedNames` | 已登入使用者查詢岩館名稱清單時，回傳去除重複值與空白／null 值後、依字串排序的清單。 |
+| `GetNames_NoGymNames_ReturnsEmptyList` | 資料庫中沒有任何岩館名稱時，回傳空陣列。 |
+
 ### TokenAuthorizationFilter（`Filters/TokenAuthorizationFilterTests.cs`）
 
 | 測試案例 | 說明 |

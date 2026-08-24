@@ -5,6 +5,7 @@ import { useVideoPlaybackCacheStore } from '../stores/videoPlaybackCache'
 import type { VideoRecordResponse } from '../types/sends'
 import ConfirmDialog from './ConfirmDialog.vue'
 import LoadingSpinner from './LoadingSpinner.vue'
+import GymNameInput from './GymNameInput.vue'
 
 const props = defineProps<{
   record: VideoRecordResponse
@@ -161,7 +162,7 @@ async function handleConfirmDelete(): Promise<void> {
         </div>
         <div class="form-field">
           <label for="edit-gym-name">岩館（選填）</label>
-          <input id="edit-gym-name" v-model="gymName" type="text" />
+          <GymNameInput id="edit-gym-name" v-model="gymName" />
         </div>
         <div class="form-field">
           <label for="edit-difficulty">難度（選填）</label>

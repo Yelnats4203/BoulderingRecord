@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { createSession } from '../api/sessions'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
+import GymNameInput from '../components/GymNameInput.vue'
 
 interface GradeRow {
   grade: string
@@ -83,7 +84,7 @@ async function handleSubmit(): Promise<void> {
 
       <div class="form-field">
         <label for="gymName">岩館名稱</label>
-        <input id="gymName" v-model="gymName" type="text" placeholder="選填" />
+        <GymNameInput id="gymName" v-model="gymName" placeholder="選填" />
       </div>
 
       <div class="grade-rows">

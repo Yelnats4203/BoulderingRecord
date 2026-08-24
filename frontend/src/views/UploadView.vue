@@ -4,6 +4,7 @@ import { createSend, getUploadAuthorization, getUploadEligibility, uploadVideoTo
 import { VideoCompressionError } from '../utils/videoCompression'
 import { compressVideoWebCodecs } from '../utils/videoCompressionWebCodecs'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
+import GymNameInput from '../components/GymNameInput.vue'
 
 function todayDateOnly(): string {
   const now = new Date()
@@ -132,7 +133,7 @@ async function handleUpload(): Promise<void> {
 
       <div class="form-field">
         <label for="gymName">岩館名稱（選填）</label>
-        <input id="gymName" v-model="gymName" type="text" />
+        <GymNameInput id="gymName" v-model="gymName" />
       </div>
 
       <div class="form-field">
