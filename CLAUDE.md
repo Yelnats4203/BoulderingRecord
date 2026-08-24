@@ -27,6 +27,11 @@ BoulderingRecord 是一個攀岩紀錄管理系統，後端以 **.NET 10**（`ne
 
 - **不使用 `var`**（後端）：C# 區域變數一律宣告明確型別，禁止使用 `var`（包含 `out var`、tuple 解構等寫法），以利閱讀時清楚掌握型別資訊。此慣例適用於方案內所有 .NET 子專案，不適用於前端 TypeScript 程式碼。
 
+## API 測試規範（必要步驟）
+
+- 新增任何 API 端點（Controller Action）時，**必須**在 `BoulderingRecordAPI.Tests` 補上對應的測試案例，涵蓋正常路徑與常見錯誤路徑（如未登入、資源不存在、權限不符等）。
+- 新增或修改 API 測試後，**必須**同步在 `BoulderingRecordAPI.Tests/README.md` 的「API 測試案例清單」補上或更新對應的測試案例敘述，保持文件與程式碼一致。
+
 ## 版控安全檢查（必要步驟）
 
 本專案為**公開 Repo**，每次執行版控（`git add` / `git commit` 前）**必須**檢查是否有因測試需求而寫入的 API Keys、密鑰、Token 等機密資訊：
