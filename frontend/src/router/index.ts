@@ -7,7 +7,7 @@ import VideoRecordsView from '../views/VideoRecordsView.vue'
 import CreateUserView from '../views/CreateUserView.vue'
 import UserListView from '../views/UserListView.vue'
 import ChangePasswordView from '../views/ChangePasswordView.vue'
-import DashboardView from '../views/DashboardView.vue'
+import HomeView from '../views/HomeView.vue'
 import CreateSessionView from '../views/CreateSessionView.vue'
 import FriendListView from '../views/FriendListView.vue'
 import FriendProfileView from '../views/FriendProfileView.vue'
@@ -20,7 +20,7 @@ const router = createRouter({
       path: '/',
       component: AppLayout,
       children: [
-        { path: 'dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true } },
+        { path: 'home', name: 'home', component: HomeView, meta: { requiresAuth: true } },
         {
           path: 'sessions/create',
           name: 'createSession',
@@ -54,7 +54,7 @@ const router = createRouter({
           component: UserListView,
           meta: { requiresAuth: true, requiresEditPermission: true },
         },
-        { path: '', redirect: '/dashboard' },
+        { path: '', redirect: '/home' },
       ],
     },
   ],
@@ -68,11 +68,11 @@ router.beforeEach((to: RouteLocationNormalizedGeneric) => {
   }
 
   if (to.meta.requiresEditPermission && !authStore.hasEditPermission) {
-    return { name: 'dashboard' }
+    return { name: 'home' }
   }
 
   if (to.name === 'login' && authStore.isAuthenticated) {
-    return { name: 'dashboard' }
+    return { name: 'home' }
   }
 
   return true

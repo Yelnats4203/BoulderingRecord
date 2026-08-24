@@ -7,4 +7,5 @@ namespace BoulderingRecordAPI.Models.Auth;
 /// <param name="ExpiresAt">token 到期時間。</param>
 /// <param name="HasEditPermission">是否具有編輯權限。</param>
 /// <param name="UserId">登入使用者的唯一識別碼。</param>
-public record LoginResponse(string Token, DateTimeOffset ExpiresAt, bool HasEditPermission, Guid UserId);
+/// <param name="Username">登入使用者的名稱。</param>
+public record LoginResponse(string Token, DateTimeOffset ExpiresAt, bool HasEditPermission, Guid UserId, string Username);

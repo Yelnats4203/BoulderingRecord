@@ -34,12 +34,9 @@ onMounted(() => {
 
 <template>
   <nav class="side-menu">
-    <h1 class="side-menu-title">攀岩紀錄</h1>
+    <RouterLink class="side-menu-title" :to="{ name: 'home' }">攀岩紀錄</RouterLink>
 
     <ul class="side-menu-list">
-      <li>
-        <RouterLink class="side-menu-link" :to="{ name: 'dashboard' }">儀表板</RouterLink>
-      </li>
       <li>
         <RouterLink class="side-menu-link" :to="{ name: 'createSession' }">新增抱石紀錄</RouterLink>
       </li>
@@ -90,8 +87,12 @@ onMounted(() => {
 }
 
 .side-menu-title {
+  display: block;
   font-size: 1.25rem;
+  font-weight: 700;
   margin: 0 0 16px;
+  color: var(--color-text);
+  text-decoration: none;
 }
 
 .side-menu-list {

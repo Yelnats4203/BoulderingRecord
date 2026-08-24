@@ -21,7 +21,7 @@ dotnet test
 
 | 測試案例 | 說明 |
 | --- | --- |
-| `Login_ValidCredentials_ReturnsOkWithToken_AndStoresInCache` | 帳密正確時，登入回應 200 並回傳 token，且該 token 會存入 active token 快取。 |
+| `Login_ValidCredentials_ReturnsOkWithToken_AndStoresInCache` | 帳密正確時，登入回應 200 並回傳 token 與使用者名稱（`Username`），且該 token 會存入 active token 快取。 |
 | `Login_InvalidPassword_ReturnsUnauthorized` | 密碼錯誤時，登入回應 401。 |
 | `Login_UnknownAcc_ReturnsUnauthorized` | 帳號不存在時，登入回應 401。 |
 | `Login_SameAccTwice_OldTokenInvalidated_NewTokenActive` | 同一帳號重複登入時，快取中的 active token 會被新 token 取代，舊 token 失效（防止重複登入）。 |

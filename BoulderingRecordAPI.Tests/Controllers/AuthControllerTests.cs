@@ -63,6 +63,7 @@ public class AuthControllerTests
         LoginResponse response = Assert.IsType<LoginResponse>(okResult.Value);
         Assert.True(tokenStore.TryGetActiveToken(TestAcc, out string? storedToken));
         Assert.Equal(response.Token, storedToken);
+        Assert.Equal(user.Username, response.Username);
     }
 
     [Fact]

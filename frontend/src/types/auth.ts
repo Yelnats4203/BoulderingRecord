@@ -8,6 +8,7 @@ export interface LoginResponse {
   expiresAt: string
   hasEditPermission: boolean
   userId: string
+  username: string
 }
 
 export interface RefreshTokenResponse {

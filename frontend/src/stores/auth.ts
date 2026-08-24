@@ -8,6 +8,7 @@ interface StoredSession {
   expiresAt: string
   hasEditPermission: boolean
   userId: string | null
+  username: string | null
 }
 
 function loadStoredSession(): StoredSession | null {
@@ -28,6 +29,7 @@ export const useAuthStore = defineStore('auth', () => {
   const expiresAt = ref<string | null>(stored?.expiresAt ?? null)
   const hasEditPermission = ref<boolean>(stored?.hasEditPermission ?? false)
   const userId = ref<string | null>(stored?.userId ?? null)
+  const username = ref<string | null>(stored?.username ?? null)
 
   const isAuthenticated = computed<boolean>(() => {
     if (!token.value || !expiresAt.value) {
@@ -36,11 +38,18 @@ export const useAuthStore = defineStore('auth', () => {
     return new Date(expiresAt.value).getTime() > Date.now()
   })
 
-  function setSession(newToken: string, newExpiresAt: string, newHasEditPermission: boolean, newUserId: string): void {
+  function setSession(
+    newToken: string,
+    newExpiresAt: string,
+    newHasEditPermission: boolean,
+    newUserId: string,
+    newUsername: string,
+  ): void {
     token.value = newToken
     expiresAt.value = newExpiresAt
     hasEditPermission.value = newHasEditPermission
     userId.value = newUserId
+    username.value = newUsername
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
@@ -48,6 +57,7 @@ export const useAuthStore = defineStore('auth', () => {
         expiresAt: newExpiresAt,
         hasEditPermission: newHasEditPermission,
         userId: newUserId,
+        username: newUsername,
       }),
     )
   }
@@ -57,8 +67,9 @@ export const useAuthStore = defineStore('auth', () => {
     expiresAt.value = null
     hasEditPermission.value = false
     userId.value = null
+    username.value = null
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  return { token, expiresAt, hasEditPermission, userId, isAuthenticated, setSession, clearSession }
+  return { token, expiresAt, hasEditPermission, userId, username, isAuthenticated, setSession, clearSession }
 })
