@@ -2,29 +2,29 @@
 import { ref } from 'vue'
 import axios from 'axios'
 import { changePassword } from '../api/auth'
+import { useToastStore } from '../stores/toast'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import PasswordInput from '../components/PasswordInput.vue'
+
+const toastStore = useToastStore()
 
 const oldPsw = ref<string>('')
 const newPsw = ref<string>('')
 const isSubmitting = ref<boolean>(false)
-const errorMessage = ref<string>('')
-const successMessage = ref<string>('')
 
 async function handleSubmit(): Promise<void> {
-  errorMessage.value = ''
-  successMessage.value = ''
   isSubmitting.value = true
   try {
     await changePassword({ oldPsw: oldPsw.value, newPsw: newPsw.value })
-    successMessage.value = '密碼修改成功。'
+    toastStore.showToast('密碼修改成功。', 'success')
     oldPsw.value = ''
     newPsw.value = ''
   } catch (error) {
-    errorMessage.value =
+    const message: string =
       axios.isAxiosError(error) && typeof error.response?.data === 'string' && error.response.data
         ? error.response.data
         : '密碼修改失敗，請稍後再試。'
+    toastStore.showToast(message, 'error')
   } finally {
     isSubmitting.value = false
   }
@@ -35,9 +35,6 @@ async function handleSubmit(): Promise<void> {
   <div class="page change-password-page">
     <form class="card change-password-form" @submit.prevent="handleSubmit">
       <h2>修改密碼</h2>
-
-      <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
-      <p v-if="successMessage" class="success-text">{{ successMessage }}</p>
 
       <div class="form-field">
         <label for="oldPsw">目前密碼</label>
@@ -66,11 +63,5 @@ async function handleSubmit(): Promise<void> {
 
 .change-password-form h2 {
   margin-top: 0;
-}
-
-.success-text {
-  color: #16a34a;
-  font-size: 0.9rem;
-  margin: 0 0 12px;
 }
 </style>

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { createSend, getUploadAuthorization, getUploadEligibility, uploadVideoToCloudinary } from '../api/sends'
 import { VideoCompressionError } from '../utils/videoCompression'
 import { compressVideoWebCodecs } from '../utils/videoCompressionWebCodecs'
+import { useToastStore } from '../stores/toast'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import GymNameInput from '../components/GymNameInput.vue'
 
@@ -14,6 +15,8 @@ function todayDateOnly(): string {
   return `${year}-${month}-${day}`
 }
 
+const toastStore = useToastStore()
+
 const videoFile = ref<File | null>(null)
 const climbAt = ref<string>(todayDateOnly())
 const gymName = ref<string>('')
@@ -23,8 +26,6 @@ const isPublic = ref<boolean>(true)
 const isCompressing = ref<boolean>(false)
 const compressionProgress = ref<number>(0)
 const isUploading = ref<boolean>(false)
-const uploadErrorMessage = ref<string>('')
-const uploadSuccessMessage = ref<string>('')
 
 function handleFileChange(event: Event): void {
   const input = event.target as HTMLInputElement
@@ -45,21 +46,18 @@ function sanitizeDifficulty(): void {
 
 async function handleUpload(): Promise<void> {
   if (!videoFile.value) {
-    uploadErrorMessage.value = '請選擇要上傳的影片檔案。'
+    toastStore.showToast('請選擇要上傳的影片檔案。', 'error')
     return
   }
-
-  uploadErrorMessage.value = ''
-  uploadSuccessMessage.value = ''
 
   try {
     const eligibility = await getUploadEligibility()
     if (!eligibility.isAllowed) {
-      uploadErrorMessage.value = '測試帳號一日僅能上傳5筆。'
+      toastStore.showToast('測試帳號一日僅能上傳5筆。', 'error')
       return
     }
   } catch {
-    uploadErrorMessage.value = '上傳資格確認失敗，請稍後再試。'
+    toastStore.showToast('上傳資格確認失敗，請稍後再試。', 'error')
     return
   }
 
@@ -73,9 +71,9 @@ async function handleUpload(): Promise<void> {
     })
   } catch (error) {
     if (error instanceof VideoCompressionError && error.code === 'OUTPUT_TOO_LARGE') {
-      uploadErrorMessage.value = '影片壓縮後仍超過 25MB，請改用較短或較低畫質的影片再試一次。'
+      toastStore.showToast('影片壓縮後仍超過 25MB，請改用較短或較低畫質的影片再試一次。', 'error')
     } else {
-      uploadErrorMessage.value = '影片壓縮失敗，請確認影片格式後再試一次。'
+      toastStore.showToast('影片壓縮失敗，請確認影片格式後再試一次。', 'error')
     }
     isCompressing.value = false
     return
@@ -94,7 +92,7 @@ async function handleUpload(): Promise<void> {
       climbAt: climbAt.value,
       isPublic: isPublic.value,
     })
-    uploadSuccessMessage.value = '上傳成功。'
+    toastStore.showToast('上傳成功。', 'success')
     videoFile.value = null
     climbAt.value = todayDateOnly()
     gymName.value = ''
@@ -106,7 +104,7 @@ async function handleUpload(): Promise<void> {
       fileInput.value = ''
     }
   } catch {
-    uploadErrorMessage.value = '上傳失敗，請確認影片格式後再試一次。'
+    toastStore.showToast('上傳失敗，請確認影片格式後再試一次。', 'error')
   } finally {
     isUploading.value = false
   }
@@ -117,9 +115,6 @@ async function handleUpload(): Promise<void> {
   <div class="page upload-page">
     <form class="card upload-form" @submit.prevent="handleUpload">
       <h2>上傳影片</h2>
-
-      <p v-if="uploadErrorMessage" class="error-text">{{ uploadErrorMessage }}</p>
-      <p v-if="uploadSuccessMessage" class="success-text">{{ uploadSuccessMessage }}</p>
 
       <div class="form-field">
         <label for="video">影片檔案</label>
@@ -188,12 +183,6 @@ async function handleUpload(): Promise<void> {
 
 .upload-form h2 {
   margin-top: 0;
-}
-
-.success-text {
-  color: #16a34a;
-  font-size: 0.9rem;
-  margin: 0 0 12px;
 }
 
 .form-field-checkbox label {

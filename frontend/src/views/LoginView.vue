@@ -3,16 +3,17 @@ import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { login } from '../api/auth'
 import { useAuthStore } from '../stores/auth'
+import { useToastStore } from '../stores/toast'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import PasswordInput from '../components/PasswordInput.vue'
 
 const authStore = useAuthStore()
+const toastStore = useToastStore()
 const router = useRouter()
 const route = useRoute()
 
 const acc = ref<string>('')
 const psw = ref<string>('')
-const errorMessage = ref<string>('')
 const isSubmitting = ref<boolean>(false)
 
 const loginTimeoutMessagesByReason: Record<string, string> = {
@@ -23,20 +24,19 @@ const loginTimeoutMessagesByReason: Record<string, string> = {
 onMounted(() => {
   const reason: string | null = typeof route.query.reason === 'string' ? route.query.reason : null
   if (reason && reason in loginTimeoutMessagesByReason) {
-    errorMessage.value = loginTimeoutMessagesByReason[reason]
+    toastStore.showToast(loginTimeoutMessagesByReason[reason], 'error')
     router.replace({ name: 'login' })
   }
 })
 
 async function handleSubmit(): Promise<void> {
-  errorMessage.value = ''
   isSubmitting.value = true
   try {
     const response = await login({ acc: acc.value, psw: psw.value })
     authStore.setSession(response.token, response.expiresAt, response.hasEditPermission, response.userId, response.username)
     await router.push({ name: 'home' })
   } catch {
-    errorMessage.value = '帳號或密碼錯誤'
+    toastStore.showToast('帳號或密碼錯誤', 'error')
   } finally {
     isSubmitting.value = false
   }
@@ -47,8 +47,6 @@ async function handleSubmit(): Promise<void> {
   <div class="page login-page">
     <form class="card login-card" @submit.prevent="handleSubmit">
       <h1>登入</h1>
-
-      <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
 
       <div class="form-field">
         <label for="acc">帳號</label>

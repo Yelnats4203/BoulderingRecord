@@ -13,23 +13,22 @@ import type { FriendRequestSummary, FriendSummary } from '../types/friends'
 import type { UserSearchResult } from '../types/users'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { useFriendRequestsStore } from '../stores/friendRequests'
+import { useToastStore } from '../stores/toast'
 
 const router = useRouter()
 const friendRequestsStore = useFriendRequestsStore()
+const toastStore = useToastStore()
 
 const friends = ref<FriendSummary[]>([])
 const friendsLoading = ref<boolean>(false)
-const friendsErrorMessage = ref<string>('')
 
 const pendingRequests = ref<FriendRequestSummary[]>([])
 const pendingRequestsLoading = ref<boolean>(false)
-const pendingRequestsErrorMessage = ref<string>('')
 const respondingRequestId = ref<string>('')
 
 const searchKeyword = ref<string>('')
 const searchResults = ref<UserSearchResult[]>([])
 const isSearching = ref<boolean>(false)
-const searchErrorMessage = ref<string>('')
 const sendingRequestToUserId = ref<string>('')
 let searchTimeoutId: ReturnType<typeof setTimeout> | undefined
 
@@ -41,11 +40,10 @@ const isRemovingFriend = ref<boolean>(false)
 
 async function fetchFriends(): Promise<void> {
   friendsLoading.value = true
-  friendsErrorMessage.value = ''
   try {
     friends.value = await getFriends()
   } catch {
-    friendsErrorMessage.value = '讀取好友清單失敗，請稍後再試。'
+    toastStore.showToast('讀取好友清單失敗，請稍後再試。', 'error')
   } finally {
     friendsLoading.value = false
   }
@@ -53,11 +51,10 @@ async function fetchFriends(): Promise<void> {
 
 async function fetchPendingRequests(): Promise<void> {
   pendingRequestsLoading.value = true
-  pendingRequestsErrorMessage.value = ''
   try {
     pendingRequests.value = await getPendingFriendRequests()
   } catch {
-    pendingRequestsErrorMessage.value = '讀取好友邀請失敗，請稍後再試。'
+    toastStore.showToast('讀取好友邀請失敗，請稍後再試。', 'error')
   } finally {
     pendingRequestsLoading.value = false
   }
@@ -79,11 +76,10 @@ function onSearchInput(): void {
 
 async function runSearch(keyword: string): Promise<void> {
   isSearching.value = true
-  searchErrorMessage.value = ''
   try {
     searchResults.value = await searchUsers(keyword)
   } catch {
-    searchErrorMessage.value = '搜尋使用者失敗，請稍後再試。'
+    toastStore.showToast('搜尋使用者失敗，請稍後再試。', 'error')
   } finally {
     isSearching.value = false
   }
@@ -98,7 +94,7 @@ async function handleSendRequest(user: UserSearchResult): Promise<void> {
       result.relationStatus = 'RequestSentByMe'
     }
   } catch {
-    searchErrorMessage.value = '送出好友邀請失敗，請稍後再試。'
+    toastStore.showToast('送出好友邀請失敗，請稍後再試。', 'error')
   } finally {
     sendingRequestToUserId.value = ''
   }
@@ -118,7 +114,7 @@ async function handleAcceptFromSearch(user: UserSearchResult): Promise<void> {
     await Promise.all([fetchFriends(), fetchPendingRequests()])
     void friendRequestsStore.refreshPendingCount()
   } catch {
-    searchErrorMessage.value = '接受好友邀請失敗，請稍後再試。'
+    toastStore.showToast('接受好友邀請失敗，請稍後再試。', 'error')
   } finally {
     sendingRequestToUserId.value = ''
   }
@@ -132,7 +128,7 @@ async function handleAcceptRequest(request: FriendRequestSummary): Promise<void>
     await fetchFriends()
     void friendRequestsStore.refreshPendingCount()
   } catch {
-    pendingRequestsErrorMessage.value = '接受好友邀請失敗，請稍後再試。'
+    toastStore.showToast('接受好友邀請失敗，請稍後再試。', 'error')
   } finally {
     respondingRequestId.value = ''
   }
@@ -153,7 +149,7 @@ async function handleRejectConfirmed(): Promise<void> {
     rejectingRequest.value = null
     void friendRequestsStore.refreshPendingCount()
   } catch {
-    pendingRequestsErrorMessage.value = '拒絕好友邀請失敗，請稍後再試。'
+    toastStore.showToast('拒絕好友邀請失敗，請稍後再試。', 'error')
     rejectingRequest.value = null
   } finally {
     isRejecting.value = false
@@ -174,7 +170,7 @@ async function handleRemoveFriendConfirmed(): Promise<void> {
     friends.value = friends.value.filter((f) => f.id !== removingFriend.value?.id)
     removingFriend.value = null
   } catch {
-    friendsErrorMessage.value = '刪除好友失敗，請稍後再試。'
+    toastStore.showToast('刪除好友失敗，請稍後再試。', 'error')
     removingFriend.value = null
   } finally {
     isRemovingFriend.value = false
@@ -202,8 +198,7 @@ onMounted(() => {
       <div class="form-field">
         <input v-model="searchKeyword" type="text" placeholder="輸入使用者名稱" @input="onSearchInput" />
       </div>
-      <p v-if="searchErrorMessage" class="error-text">{{ searchErrorMessage }}</p>
-      <p v-else-if="isSearching" class="hint-text">搜尋中...</p>
+      <p v-if="isSearching" class="hint-text">搜尋中...</p>
       <ul v-else-if="searchResults.length > 0" class="friend-result-list">
         <li v-for="user in searchResults" :key="user.id" class="friend-result-item">
           <span>{{ user.username }}</span>
@@ -236,8 +231,7 @@ onMounted(() => {
 
     <section class="card friends-section">
       <h3>收到的邀請</h3>
-      <p v-if="pendingRequestsErrorMessage" class="error-text">{{ pendingRequestsErrorMessage }}</p>
-      <p v-else-if="pendingRequestsLoading" class="hint-text">載入中...</p>
+      <p v-if="pendingRequestsLoading" class="hint-text">載入中...</p>
       <ul v-else-if="pendingRequests.length > 0" class="friend-result-list">
         <li v-for="request in pendingRequests" :key="request.id" class="friend-result-item">
           <span>{{ request.otherUsername }}</span>
@@ -259,8 +253,7 @@ onMounted(() => {
 
     <section class="card friends-section">
       <h3>好友清單</h3>
-      <p v-if="friendsErrorMessage" class="error-text">{{ friendsErrorMessage }}</p>
-      <p v-else-if="friendsLoading" class="hint-text">載入中...</p>
+      <p v-if="friendsLoading" class="hint-text">載入中...</p>
       <ul v-else-if="friends.length > 0" class="friend-result-list">
         <li v-for="friend in friends" :key="friend.id" class="friend-result-item">
           <button type="button" class="friend-name-link" @click="goToFriendProfile(friend)">{{ friend.username }}</button>

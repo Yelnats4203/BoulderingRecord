@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { createSession } from '../api/sessions'
+import { useToastStore } from '../stores/toast'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import GymNameInput from '../components/GymNameInput.vue'
 
@@ -22,12 +23,12 @@ function createEmptyGradeRow(): GradeRow {
   return { grade: '', completedCount: '0', uncompletedCount: '0' }
 }
 
+const toastStore = useToastStore()
+
 const date = ref<string>(todayDateOnly())
 const gymName = ref<string>('')
 const gradeRows = ref<GradeRow[]>([createEmptyGradeRow()])
 const isSubmitting = ref<boolean>(false)
-const errorMessage = ref<string>('')
-const successMessage = ref<string>('')
 
 function addGradeRow(): void {
   gradeRows.value.push(createEmptyGradeRow())
@@ -38,9 +39,6 @@ function removeGradeRow(index: number): void {
 }
 
 async function handleSubmit(): Promise<void> {
-  errorMessage.value = ''
-  successMessage.value = ''
-
   const gradeCounts = gradeRows.value
     .filter((row) => row.grade !== '')
     .map((row) => ({
@@ -50,19 +48,19 @@ async function handleSubmit(): Promise<void> {
     }))
 
   if (gradeCounts.length === 0) {
-    errorMessage.value = '請至少輸入一個難度的攀爬次數統計。'
+    toastStore.showToast('請至少輸入一個難度的攀爬次數統計。', 'error')
     return
   }
 
   isSubmitting.value = true
   try {
     await createSession({ date: date.value, gymName: gymName.value, gradeCounts })
-    successMessage.value = '抱石紀錄建立成功。'
+    toastStore.showToast('抱石紀錄建立成功。', 'success')
     date.value = todayDateOnly()
     gymName.value = ''
     gradeRows.value = [createEmptyGradeRow()]
   } catch {
-    errorMessage.value = '建立失敗，請確認輸入內容後再試一次。'
+    toastStore.showToast('建立失敗，請確認輸入內容後再試一次。', 'error')
   } finally {
     isSubmitting.value = false
   }
@@ -73,9 +71,6 @@ async function handleSubmit(): Promise<void> {
   <div class="page create-session-page">
     <form class="card create-session-form" @submit.prevent="handleSubmit">
       <h2>新增抱石紀錄</h2>
-
-      <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
-      <p v-if="successMessage" class="success-text">{{ successMessage }}</p>
 
       <div class="form-field">
         <label for="date">日期</label>
@@ -172,12 +167,6 @@ async function handleSubmit(): Promise<void> {
 
 .submit-btn {
   width: 100%;
-}
-
-.success-text {
-  color: #16a34a;
-  font-size: 0.9rem;
-  margin: 0 0 12px;
 }
 
 @media (min-width: 768px) {

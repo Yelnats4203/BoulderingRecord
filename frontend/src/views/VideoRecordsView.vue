@@ -5,19 +5,20 @@ import type { VideoRecordFilter, VideoRecordResponse } from '../types/sends'
 import VideoFilterForm from '../components/VideoFilterForm.vue'
 import VideoRecordList from '../components/VideoRecordList.vue'
 import VideoRecordDetailModal from '../components/VideoRecordDetailModal.vue'
+import { useToastStore } from '../stores/toast'
+
+const toastStore = useToastStore()
 
 const records = ref<VideoRecordResponse[]>([])
 const isLoading = ref<boolean>(false)
-const errorMessage = ref<string>('')
 const selectedRecord = ref<VideoRecordResponse | null>(null)
 
 async function fetchRecords(filter: Partial<VideoRecordFilter> = {}): Promise<void> {
   isLoading.value = true
-  errorMessage.value = ''
   try {
     records.value = await getMySends(filter)
   } catch {
-    errorMessage.value = '讀取影片紀錄清單失敗，請稍後再試。'
+    toastStore.showToast('讀取影片紀錄清單失敗，請稍後再試。', 'error')
   } finally {
     isLoading.value = false
   }
@@ -58,8 +59,7 @@ onMounted(() => {
 
     <VideoFilterForm :is-loading="isLoading" @filter="fetchRecords" />
 
-    <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
-    <p v-else-if="isLoading" class="hint-text">載入中...</p>
+    <p v-if="isLoading" class="hint-text">載入中...</p>
     <VideoRecordList v-else :records="records" @select="handleSelect" />
 
     <VideoRecordDetailModal

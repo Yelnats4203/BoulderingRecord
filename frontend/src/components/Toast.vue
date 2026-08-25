@@ -1,17 +1,11 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
 
-const props = withDefaults(
-  defineProps<{
-    message: string
-    type?: 'success' | 'error'
-    duration?: number
-  }>(),
-  {
-    type: 'success',
-    duration: 3000,
-  },
-)
+const props = defineProps<{
+  message: string
+  type: 'success' | 'error'
+  duration: number
+}>()
 
 const emit = defineEmits<{
   dismiss: []
@@ -37,10 +31,6 @@ onUnmounted(() => {
 
 <style scoped>
 .toast {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -49,7 +39,7 @@ onUnmounted(() => {
   background: var(--color-surface);
   border: 2px solid var(--color-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 300;
+  pointer-events: auto;
 }
 
 .toast.success span {

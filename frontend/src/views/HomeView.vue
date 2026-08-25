@@ -3,20 +3,20 @@ import { onMounted, ref } from 'vue'
 import { getRecentFriendVideos } from '../api/friends'
 import type { FriendVideo } from '../types/friends'
 import { useAuthStore } from '../stores/auth'
+import { useToastStore } from '../stores/toast'
 
 const authStore = useAuthStore()
+const toastStore = useToastStore()
 
 const friendVideos = ref<FriendVideo[]>([])
 const friendVideosLoading = ref<boolean>(false)
-const friendVideosErrorMessage = ref<string>('')
 
 async function fetchFriendVideos(): Promise<void> {
   friendVideosLoading.value = true
-  friendVideosErrorMessage.value = ''
   try {
     friendVideos.value = await getRecentFriendVideos()
   } catch {
-    friendVideosErrorMessage.value = '讀取好友動態失敗，請稍後再試。'
+    toastStore.showToast('讀取好友動態失敗，請稍後再試。', 'error')
   } finally {
     friendVideosLoading.value = false
   }
@@ -35,8 +35,7 @@ onMounted(() => {
 
     <section class="home-section friend-activity-section">
       <h3>好友動態</h3>
-      <p v-if="friendVideosErrorMessage" class="error-text">{{ friendVideosErrorMessage }}</p>
-      <p v-else-if="friendVideosLoading" class="hint-text">載入中...</p>
+      <p v-if="friendVideosLoading" class="hint-text">載入中...</p>
       <div v-else-if="friendVideos.length > 0" class="friend-video-grid">
         <RouterLink
           v-for="item in friendVideos"

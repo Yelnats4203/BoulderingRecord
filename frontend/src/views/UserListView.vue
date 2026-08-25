@@ -3,12 +3,12 @@ import { onMounted, ref } from 'vue'
 import { getUsers } from '../api/users'
 import type { UserResponse } from '../types/users'
 import ChangePasswordModal from '../components/ChangePasswordModal.vue'
-import Toast from '../components/Toast.vue'
+import { useToastStore } from '../stores/toast'
+
+const toastStore = useToastStore()
 
 const users = ref<UserResponse[]>([])
 const isLoading = ref<boolean>(false)
-const errorMessage = ref<string>('')
-const successMessage = ref<string>('')
 const userForPasswordReset = ref<UserResponse | null>(null)
 
 function formatDateOnly(value: string): string {
@@ -16,16 +16,15 @@ function formatDateOnly(value: string): string {
 }
 
 function handlePasswordUpdated(): void {
-  successMessage.value = '密碼修改成功。'
+  toastStore.showToast('密碼修改成功。', 'success')
 }
 
 async function fetchUsers(): Promise<void> {
   isLoading.value = true
-  errorMessage.value = ''
   try {
     users.value = await getUsers()
   } catch {
-    errorMessage.value = '讀取使用者清單失敗，請稍後再試。'
+    toastStore.showToast('讀取使用者清單失敗，請稍後再試。', 'error')
   } finally {
     isLoading.value = false
   }
@@ -43,7 +42,6 @@ onMounted(() => {
       <RouterLink class="btn-primary create-user-link" :to="{ name: 'users' }">新增使用者</RouterLink>
     </div>
 
-    <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
     <p v-if="isLoading" class="hint-text">載入中...</p>
     <p v-else-if="users.length === 0" class="card empty-state">目前尚無使用者。</p>
 
@@ -79,8 +77,6 @@ onMounted(() => {
       @close="userForPasswordReset = null"
       @updated="handlePasswordUpdated"
     />
-
-    <Toast v-if="successMessage" :key="successMessage" :message="successMessage" @dismiss="successMessage = ''" />
   </div>
 </template>
 

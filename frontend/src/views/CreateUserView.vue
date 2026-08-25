@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { createUser } from '../api/users'
+import { useToastStore } from '../stores/toast'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import PasswordInput from '../components/PasswordInput.vue'
+
+const toastStore = useToastStore()
 
 const username = ref<string>('')
 const acc = ref<string>('')
@@ -10,12 +13,8 @@ const psw = ref<string>('')
 const hasEditPermission = ref<boolean>(false)
 const isDemoAcc = ref<boolean>(true)
 const isSubmitting = ref<boolean>(false)
-const errorMessage = ref<string>('')
-const successMessage = ref<string>('')
 
 async function handleSubmit(): Promise<void> {
-  errorMessage.value = ''
-  successMessage.value = ''
   isSubmitting.value = true
   try {
     await createUser({
@@ -25,14 +24,14 @@ async function handleSubmit(): Promise<void> {
       hasEditPermission: hasEditPermission.value,
       isDemoAcc: isDemoAcc.value,
     })
-    successMessage.value = '使用者建立成功。'
+    toastStore.showToast('使用者建立成功。', 'success')
     username.value = ''
     acc.value = ''
     psw.value = ''
     hasEditPermission.value = false
     isDemoAcc.value = true
   } catch {
-    errorMessage.value = '建立失敗，請確認帳號是否已被使用後再試一次。'
+    toastStore.showToast('建立失敗，請確認帳號是否已被使用後再試一次。', 'error')
   } finally {
     isSubmitting.value = false
   }
@@ -43,9 +42,6 @@ async function handleSubmit(): Promise<void> {
   <div class="page create-user-page">
     <form class="card create-user-form" @submit.prevent="handleSubmit">
       <h2>新增使用者</h2>
-
-      <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
-      <p v-if="successMessage" class="success-text">{{ successMessage }}</p>
 
       <div class="form-field">
         <label for="username">使用者名稱</label>
@@ -104,11 +100,5 @@ async function handleSubmit(): Promise<void> {
 
 .form-field-checkbox input[type='checkbox'] {
   width: auto;
-}
-
-.success-text {
-  color: #16a34a;
-  font-size: 0.9rem;
-  margin: 0 0 12px;
 }
 </style>
