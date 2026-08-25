@@ -38,7 +38,7 @@ onMounted(() => {
 
     <ul class="side-menu-list">
       <li>
-        <RouterLink class="side-menu-link" :to="{ name: 'createSession' }">新增抱石紀錄</RouterLink>
+        <RouterLink class="side-menu-link" :to="{ name: 'sessions' }">抱石紀錄</RouterLink>
       </li>
       <li>
         <RouterLink class="side-menu-link" :to="{ name: 'upload' }">上傳影片</RouterLink>

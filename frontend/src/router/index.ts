@@ -8,7 +8,7 @@ import CreateUserView from '../views/CreateUserView.vue'
 import UserListView from '../views/UserListView.vue'
 import ChangePasswordView from '../views/ChangePasswordView.vue'
 import HomeView from '../views/HomeView.vue'
-import CreateSessionView from '../views/CreateSessionView.vue'
+import SessionListView from '../views/SessionListView.vue'
 import FriendListView from '../views/FriendListView.vue'
 import FriendProfileView from '../views/FriendProfileView.vue'
 
@@ -22,9 +22,9 @@ const router = createRouter({
       children: [
         { path: 'home', name: 'home', component: HomeView, meta: { requiresAuth: true } },
         {
-          path: 'sessions/create',
-          name: 'createSession',
-          component: CreateSessionView,
+          path: 'sessions',
+          name: 'sessions',
+          component: SessionListView,
           meta: { requiresAuth: true },
         },
         { path: 'upload', name: 'upload', component: UploadView, meta: { requiresAuth: true } },

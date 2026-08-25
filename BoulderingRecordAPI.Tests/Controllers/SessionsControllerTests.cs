@@ -186,6 +186,50 @@ public class SessionsControllerTests
     }
 
     [Fact]
+    public async Task Update_Owner_ChangingGradeCountSize_AddsAndRemovesRecords()
+    {
+        Session session = new Session
+        {
+            UserId = TestUserId,
+            Date = new DateOnly(2026, 8, 4),
+            GymName = "岩館",
+            GradeRecords =
+            [
+                new SessionGradeRecord { Grade = 1, CompletedCount = 1, UncompletedCount = 0 },
+                new SessionGradeRecord { Grade = 2, CompletedCount = 2, UncompletedCount = 0 },
+                new SessionGradeRecord { Grade = 3, CompletedCount = 3, UncompletedCount = 0 },
+            ],
+        };
+        SessionsController controller = CreateController(new FakeSessionRepository([session]));
+
+        IActionResult increaseResult = await controller.Update(
+            session.Id,
+            CreateRequest(gradeCounts:
+            [
+                new GradeCountRequest(4, 4, 0),
+                new GradeCountRequest(5, 5, 0),
+                new GradeCountRequest(6, 6, 0),
+                new GradeCountRequest(7, 7, 0),
+            ]),
+            CancellationToken.None);
+
+        OkObjectResult increaseOkResult = Assert.IsType<OkObjectResult>(increaseResult);
+        SessionResponse increaseResponse = Assert.IsType<SessionResponse>(increaseOkResult.Value);
+        Assert.Equal(4, increaseResponse.GradeCounts.Count);
+        Assert.Equal([4, 5, 6, 7], increaseResponse.GradeCounts.Select(g => g.Grade));
+
+        IActionResult decreaseResult = await controller.Update(
+            session.Id,
+            CreateRequest(gradeCounts: [new GradeCountRequest(9, 9, 0)]),
+            CancellationToken.None);
+
+        OkObjectResult decreaseOkResult = Assert.IsType<OkObjectResult>(decreaseResult);
+        SessionResponse decreaseResponse = Assert.IsType<SessionResponse>(decreaseOkResult.Value);
+        Assert.Single(decreaseResponse.GradeCounts);
+        Assert.Equal(9, decreaseResponse.GradeCounts[0].Grade);
+    }
+
+    [Fact]
     public async Task Update_NotOwner_ReturnsNotFound()
     {
         Session session = new Session { UserId = Guid.CreateVersion7(), Date = new DateOnly(2026, 8, 4) };

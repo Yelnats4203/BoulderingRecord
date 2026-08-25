@@ -115,13 +115,33 @@ public class SessionsController(ISessionRepository sessionRepository) : Controll
 
         session.Date = request.Date;
         session.GymName = request.GymName;
-        session.GradeRecords.Clear();
-        session.GradeRecords.AddRange(request.GradeCounts.Select(g => new SessionGradeRecord
+
+        // 對 OwnsMany 的 GradeRecords 逐筆就地更新既有項目、僅新增/刪除差額，
+        // 避免 Clear() 後整批 AddRange() 造成 EF Core 將新項目誤判為 UPDATE 而非 INSERT，引發 DbUpdateConcurrencyException。
+        List<SessionGradeRecord> gradeRecords = session.GradeRecords;
+        for (int i = 0; i < request.GradeCounts.Count; i++)
         {
-            Grade = g.Grade,
-            CompletedCount = g.CompletedCount,
-            UncompletedCount = g.UncompletedCount,
-        }));
+            GradeCountRequest gradeCount = request.GradeCounts[i];
+            if (i < gradeRecords.Count)
+            {
+                gradeRecords[i].Grade = gradeCount.Grade;
+                gradeRecords[i].CompletedCount = gradeCount.CompletedCount;
+                gradeRecords[i].UncompletedCount = gradeCount.UncompletedCount;
+            }
+            else
+            {
+                gradeRecords.Add(new SessionGradeRecord
+                {
+                    Grade = gradeCount.Grade,
+                    CompletedCount = gradeCount.CompletedCount,
+                    UncompletedCount = gradeCount.UncompletedCount,
+                });
+            }
+        }
+        if (gradeRecords.Count > request.GradeCounts.Count)
+        {
+            gradeRecords.RemoveRange(request.GradeCounts.Count, gradeRecords.Count - request.GradeCounts.Count);
+        }
 
         await sessionRepository.SaveChangesAsync(cancellationToken);
 
