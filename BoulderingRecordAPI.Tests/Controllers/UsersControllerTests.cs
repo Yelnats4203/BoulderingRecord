@@ -131,6 +131,62 @@ public class UsersControllerTests
     }
 
     [Fact]
+    public async Task ResetPassword_ExistingAcc_ReturnsNoContentAndPersistsHashedPassword()
+    {
+        User existing = new User { Username = "既有使用者", Acc = "targetacc", Psw = "old-hash", CreatedAt = DateTime.UtcNow };
+        FakeUserRepository userRepository = new FakeUserRepository([existing]);
+        UsersController controller = CreateController(userRepository);
+
+        IActionResult result = await controller.ResetPassword(
+            new AdminResetPasswordRequest("targetacc", "NewPassword123!"), CancellationToken.None);
+
+        Assert.IsType<NoContentResult>(result);
+        User? stored = await userRepository.GetByAccAsync("targetacc", CancellationToken.None);
+        Assert.NotNull(stored);
+        Assert.NotEqual("old-hash", stored!.Psw);
+        Assert.NotEqual("NewPassword123!", stored.Psw);
+    }
+
+    [Fact]
+    public async Task ResetPassword_UnknownAcc_ReturnsNotFound()
+    {
+        UsersController controller = CreateController(new FakeUserRepository([]));
+
+        IActionResult result = await controller.ResetPassword(
+            new AdminResetPasswordRequest("nosuchacc", "NewPassword123!"), CancellationToken.None);
+
+        Assert.IsType<NotFoundObjectResult>(result);
+    }
+
+    [Theory]
+    [InlineData("password123")]
+    [InlineData("PASSWORD123!")]
+    [InlineData("Pass1!")]
+    public async Task ResetPassword_WeakPassword_ReturnsBadRequest(string newPsw)
+    {
+        User existing = new User { Username = "既有使用者", Acc = "targetacc", Psw = "old-hash", CreatedAt = DateTime.UtcNow };
+        UsersController controller = CreateController(new FakeUserRepository([existing]));
+
+        IActionResult result = await controller.ResetPassword(
+            new AdminResetPasswordRequest("targetacc", newPsw), CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Theory]
+    [InlineData("", "psw")]
+    [InlineData("acc", "")]
+    public async Task ResetPassword_MissingRequiredField_ReturnsBadRequest(string acc, string newPsw)
+    {
+        UsersController controller = CreateController(new FakeUserRepository([]));
+
+        IActionResult result = await controller.ResetPassword(
+            new AdminResetPasswordRequest(acc, newPsw), CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
     public async Task Search_CurrentUserWithoutEditPermission_ExcludesAdminCandidates()
     {
         User currentUser = new User { Username = "一般搜尋者", Acc = "searcher", Psw = "hashed", HasEditPermission = false, CreatedAt = DateTime.UtcNow };

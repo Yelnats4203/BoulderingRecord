@@ -113,6 +113,10 @@ dotnet test
 | `Create_DuplicateAcc_ReturnsBadRequest` | 帳號已存在時，回應 400。 |
 | `Create_MissingRequiredField_ReturnsBadRequest` | 使用者名稱、帳號或密碼任一為空時，回應 400。 |
 | `Create_WeakPassword_ReturnsBadRequest` | 密碼不符合強度規則（缺大小寫英文、數字或特殊符號等）時，回應 400。 |
+| `ResetPassword_ExistingAcc_ReturnsNoContentAndPersistsHashedPassword` | 具編輯權限的使用者重設指定帳號密碼時，回應 204，且新密碼以雜湊後的值存入資料庫（非明文）。 |
+| `ResetPassword_UnknownAcc_ReturnsNotFound` | 欲重設密碼的帳號不存在時，回應 404。 |
+| `ResetPassword_WeakPassword_ReturnsBadRequest` | 新密碼不符合強度規則時，回應 400。 |
+| `ResetPassword_MissingRequiredField_ReturnsBadRequest` | 帳號或新密碼任一為空時，回應 400。 |
 | `GetAll_ReturnsAllUsersWithoutPassword` | 查詢所有使用者時，回應 200 並回傳全部使用者（含編輯權限旗標），不含密碼欄位。 |
 | `Search_CurrentUserWithoutEditPermission_ExcludesAdminCandidates` | 目前登入者不具編輯權限時，搜尋結果會排除具編輯權限（管理員）的候選使用者，但仍包含一般使用者。 |
 | `Search_CurrentUserWithEditPermission_IncludesAllCandidates` | 目前登入者本身具編輯權限時，搜尋結果不受過濾，同時包含一般使用者與其他管理員。 |

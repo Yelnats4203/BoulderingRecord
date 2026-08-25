@@ -2,13 +2,21 @@
 import { onMounted, ref } from 'vue'
 import { getUsers } from '../api/users'
 import type { UserResponse } from '../types/users'
+import ChangePasswordModal from '../components/ChangePasswordModal.vue'
+import Toast from '../components/Toast.vue'
 
 const users = ref<UserResponse[]>([])
 const isLoading = ref<boolean>(false)
 const errorMessage = ref<string>('')
+const successMessage = ref<string>('')
+const userForPasswordReset = ref<UserResponse | null>(null)
 
 function formatDateOnly(value: string): string {
   return new Date(value).toLocaleDateString()
+}
+
+function handlePasswordUpdated(): void {
+  successMessage.value = '密碼修改成功。'
 }
 
 async function fetchUsers(): Promise<void> {
@@ -36,7 +44,7 @@ onMounted(() => {
     </div>
 
     <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
-    <p v-else-if="isLoading" class="hint-text">載入中...</p>
+    <p v-if="isLoading" class="hint-text">載入中...</p>
     <p v-else-if="users.length === 0" class="card empty-state">目前尚無使用者。</p>
 
     <table v-else class="card user-table">
@@ -47,6 +55,7 @@ onMounted(() => {
           <th>編輯權限</th>
           <th>測試帳號</th>
           <th>建立時間</th>
+          <th>操作</th>
         </tr>
       </thead>
       <tbody>
@@ -56,9 +65,22 @@ onMounted(() => {
           <td>{{ user.hasEditPermission ? '是' : '否' }}</td>
           <td>{{ user.isDemoAcc ? '是' : '否' }}</td>
           <td>{{ formatDateOnly(user.createdAt) }}</td>
+          <td>
+            <button class="btn-secondary" type="button" @click="userForPasswordReset = user">修改密碼</button>
+          </td>
         </tr>
       </tbody>
     </table>
+
+    <ChangePasswordModal
+      v-if="userForPasswordReset"
+      :acc="userForPasswordReset.acc"
+      :username="userForPasswordReset.username"
+      @close="userForPasswordReset = null"
+      @updated="handlePasswordUpdated"
+    />
+
+    <Toast v-if="successMessage" :key="successMessage" :message="successMessage" @dismiss="successMessage = ''" />
   </div>
 </template>
 

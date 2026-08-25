@@ -81,6 +81,41 @@ public class UsersController(IUserRepository userRepository, IFriendRequestRepos
     }
 
     /// <summary>
+    /// 重設指定使用者的密碼，僅具編輯權限的使用者可呼叫，不需驗證該使用者原密碼。
+    /// </summary>
+    [TokenAuthorize]
+    [RequireEditPermission]
+    [HttpPost("reset-password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ResetPassword([FromBody] AdminResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Acc) || string.IsNullOrWhiteSpace(request.NewPsw))
+        {
+            return BadRequest("帳號與新密碼皆為必填。");
+        }
+
+        User? user = await userRepository.GetByAccAsync(request.Acc, cancellationToken);
+        if (user is null)
+        {
+            return NotFound("找不到該帳號。");
+        }
+
+        if (!PasswordPolicy.IsValid(request.NewPsw))
+        {
+            return BadRequest(PasswordPolicy.ErrorMessage);
+        }
+
+        user.Psw = PasswordHasher.HashPassword(user, request.NewPsw);
+        await userRepository.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
     /// 依使用者名稱模糊搜尋使用者，供好友邀請功能使用；不含帳號、密碼等敏感欄位，並標示與目前登入使用者的好友關係狀態。
     /// </summary>
     [TokenAuthorize]

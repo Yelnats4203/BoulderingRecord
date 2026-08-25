@@ -8,6 +8,11 @@ export interface CreateUserRequest {
   isDemoAcc: boolean
 }
 
+export interface AdminResetPasswordRequest {
+  acc: string
+  newPsw: string
+}
+
 export interface UserResponse {
   id: string
   username: string
