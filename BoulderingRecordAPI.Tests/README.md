@@ -59,6 +59,12 @@ dotnet test
 | `GetRecentVideos_NotAuthenticated_ReturnsUnauthorized` | 未登入使用者查詢好友動態時，回應 401。 |
 | `GetRecentVideos_MergesPublicSendsAcrossFriendsOrderedByUploadedAtDescending` | 查詢好友動態時，合併所有好友的公開影片、依上傳時間降冪排序，且不包含非好友使用者的影片。 |
 
+### HealthController（`Controllers/HealthControllerTests.cs`）
+
+| 測試案例 | 說明 |
+| --- | --- |
+| `Get_ReturnsOk` | 呼叫健康檢查端點（無需登入）時，回應 200，供 UptimeRobot 等外部監控服務定時呼叫確認伺服器存活。 |
+
 ### SendsController（`Controllers/SendsControllerTests.cs`）
 
 | 測試案例 | 說明 |
