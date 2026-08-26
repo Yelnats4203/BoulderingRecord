@@ -114,10 +114,10 @@ async function handleUpload(): Promise<void> {
 <template>
   <div class="page upload-page">
     <form class="card upload-form" @submit.prevent="handleUpload">
-      <h2>上傳影片</h2>
+      <h2>上傳完攀影片</h2>
 
       <div class="form-field">
-        <label for="video">影片檔案</label>
+        <label for="video">完攀影片檔案</label>
         <input id="video" type="file" accept="video/mp4,video/quicktime,.mp4,.mov" @change="handleFileChange" required />
       </div>
 

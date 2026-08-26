@@ -43,7 +43,7 @@ onMounted(() => {
           class="card friend-video-card"
           :to="{ name: 'friendProfile', params: { userId: item.friendUserId }, query: { username: item.friendUsername } }"
         >
-          <img class="video-thumbnail" :src="item.video.thumbnailUrl" alt="影片縮圖" />
+          <img class="video-thumbnail" :src="item.video.thumbnailUrl" alt="完攀影片縮圖" />
           <div class="friend-video-caption">{{ item.friendUsername }} · {{ item.video.gymName ?? '-' }}</div>
         </RouterLink>
       </div>

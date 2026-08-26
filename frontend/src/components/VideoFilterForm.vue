@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import type { VideoRecordFilter } from '../types/sends'
 import LoadingSpinner from './LoadingSpinner.vue'
+import { getDefaultOneMonthRange } from '../utils/dateRange'
 
 const props = defineProps<{
   isLoading?: boolean
@@ -11,9 +12,11 @@ const emit = defineEmits<{
   filter: [filter: Partial<VideoRecordFilter>]
 }>()
 
+const defaultRange = getDefaultOneMonthRange()
+
 const gymName = ref<string>('')
-const climbAtFrom = ref<string>('')
-const climbAtTo = ref<string>('')
+const climbAtFrom = ref<string>(defaultRange.climbAtFrom)
+const climbAtTo = ref<string>(defaultRange.climbAtTo)
 const minDifficulty = ref<string>('')
 const maxDifficulty = ref<string>('')
 

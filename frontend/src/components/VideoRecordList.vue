@@ -29,7 +29,7 @@ function formatDateOnly(value: string): string {
       class="card video-card"
       @click="emit('select', record)"
     >
-      <img class="video-thumbnail" :src="record.thumbnailUrl" alt="影片縮圖" />
+      <img class="video-thumbnail" :src="record.thumbnailUrl" alt="完攀影片縮圖" />
       <div class="video-card-caption">
         {{ record.gymName ?? '-' }} - {{ formatDifficulty(record.difficulty) }} - {{ formatDateOnly(record.climbAt) }}
       </div>

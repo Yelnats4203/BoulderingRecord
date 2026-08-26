@@ -138,7 +138,7 @@ async function handleConfirmDelete(): Promise<void> {
   <div class="modal-overlay" @click.self="emit('close')">
     <div class="card modal-content">
       <div class="modal-header">
-        <h2>影片紀錄詳細</h2>
+        <h2>完攀影片紀錄詳細</h2>
         <button class="btn-secondary" type="button" @click="emit('close')">關閉</button>
       </div>
 
@@ -149,7 +149,7 @@ async function handleConfirmDelete(): Promise<void> {
         :poster="record.thumbnailUrl"
         :src="playbackUrl"
       ></video>
-      <img v-else class="video-thumbnail-large" :src="record.thumbnailUrl" alt="影片縮圖" />
+      <img v-else class="video-thumbnail-large" :src="record.thumbnailUrl" alt="完攀影片縮圖" />
       <p v-if="isVideoLoading" class="hint-text">影片載入中...</p>
       <p v-if="videoErrorMessage" class="error-text">{{ videoErrorMessage }}</p>
 
@@ -211,8 +211,8 @@ async function handleConfirmDelete(): Promise<void> {
 
     <ConfirmDialog
       v-if="isConfirmingDelete"
-      title="刪除影片紀錄"
-      message="刪除後將無法復原，且會一併刪除 Cloudinary 上的影片，確定要刪除嗎？"
+      title="刪除完攀影片紀錄"
+      message="刪除後將無法復原，確定要刪除嗎？"
       :confirm-disabled="isDeleting"
       :confirm-loading="isDeleting"
       confirm-loading-text="刪除中..."

@@ -43,7 +43,7 @@ onMounted(() => {
 <template>
   <div class="page friend-profile-page">
     <div class="page-header">
-      <h2>{{ friendUsername || '好友' }} 的影片</h2>
+      <h2>{{ friendUsername || '好友' }} 的完攀影片</h2>
     </div>
 
     <p v-if="isLoading" class="hint-text">載入中...</p>

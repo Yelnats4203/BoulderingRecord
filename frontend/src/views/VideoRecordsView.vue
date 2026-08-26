@@ -6,6 +6,7 @@ import VideoFilterForm from '../components/VideoFilterForm.vue'
 import VideoRecordList from '../components/VideoRecordList.vue'
 import VideoRecordDetailModal from '../components/VideoRecordDetailModal.vue'
 import { useToastStore } from '../stores/toast'
+import { getDefaultOneMonthRange } from '../utils/dateRange'
 
 const toastStore = useToastStore()
 
@@ -46,15 +47,15 @@ function handleDeleted(id: string): void {
 }
 
 onMounted(() => {
-  void fetchRecords()
+  void fetchRecords(getDefaultOneMonthRange())
 })
 </script>
 
 <template>
   <div class="page video-records-page">
     <div class="page-header">
-      <h2>影片紀錄清單</h2>
-      <RouterLink class="btn-primary upload-link" :to="{ name: 'upload' }">上傳影片</RouterLink>
+      <h2>完攀影片紀錄清單</h2>
+      <RouterLink class="btn-primary upload-link" :to="{ name: 'upload' }">上傳完攀影片</RouterLink>
     </div>
 
     <VideoFilterForm :is-loading="isLoading" @filter="fetchRecords" />
