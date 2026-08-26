@@ -13,6 +13,7 @@ public class HealthController : ControllerBase
     /// 確認伺服器是否正常運行。此端點不需要驗證，供外部監控服務定時呼叫。
     /// </summary>
     [HttpGet]
+    [HttpHead]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult Get()
     {
