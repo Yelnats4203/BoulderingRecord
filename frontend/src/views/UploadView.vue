@@ -21,6 +21,7 @@ const videoFile = ref<File | null>(null)
 const climbAt = ref<string>(todayDateOnly())
 const gymName = ref<string>('')
 const difficulty = ref<string>('')
+const attempts = ref<string>('')
 const note = ref<string>('')
 const isPublic = ref<boolean>(true)
 const isCompressing = ref<boolean>(false)
@@ -42,6 +43,18 @@ function sanitizeDifficulty(): void {
     return
   }
   difficulty.value = String(Math.min(10, Math.max(0, parsed)))
+}
+
+function sanitizeAttempts(): void {
+  if (attempts.value === '') {
+    return
+  }
+  const parsed: number = Math.round(Number(attempts.value))
+  if (Number.isNaN(parsed)) {
+    attempts.value = ''
+    return
+  }
+  attempts.value = String(Math.max(1, parsed))
 }
 
 async function handleUpload(): Promise<void> {
@@ -88,6 +101,7 @@ async function handleUpload(): Promise<void> {
       sendId: auth.sendId,
       gymName: gymName.value,
       difficulty: difficulty.value,
+      attempts: attempts.value,
       note: note.value,
       climbAt: climbAt.value,
       isPublic: isPublic.value,
@@ -97,6 +111,7 @@ async function handleUpload(): Promise<void> {
     climbAt.value = todayDateOnly()
     gymName.value = ''
     difficulty.value = ''
+    attempts.value = ''
     note.value = ''
     isPublic.value = true
     const fileInput = document.getElementById('video') as HTMLInputElement | null
@@ -149,6 +164,11 @@ async function handleUpload(): Promise<void> {
         <datalist id="difficulty-options">
           <option v-for="n in 11" :key="n" :value="n - 1">V{{ n - 1 }}</option>
         </datalist>
+      </div>
+
+      <div class="form-field">
+        <label for="attempts">嘗試次數（選填）</label>
+        <input id="attempts" v-model="attempts" type="number" min="1" step="1" @blur="sanitizeAttempts" />
       </div>
 
       <div class="form-field">

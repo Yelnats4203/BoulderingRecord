@@ -5,6 +5,7 @@ export interface SendResponse {
   gymName: string | null
   climbAt: string
   difficulty: number | null
+  attempts: number | null
   uploaderId: string
   note: string | null
   visibility: SendVisibility
@@ -24,6 +25,7 @@ export interface CreateSendPayload {
   sendId: string
   gymName: string
   difficulty: string
+  attempts: string
   note: string
   climbAt: string
   isPublic: boolean
@@ -38,6 +40,7 @@ export interface VideoRecordResponse {
   gymName: string | null
   climbAt: string
   difficulty: number | null
+  attempts: number | null
   note: string | null
   thumbnailUrl: string
 }
@@ -54,6 +57,7 @@ export interface UpdateSendPayload {
   climbAt: string
   gymName: string
   difficulty: string
+  attempts: string
   note: string
 }
 

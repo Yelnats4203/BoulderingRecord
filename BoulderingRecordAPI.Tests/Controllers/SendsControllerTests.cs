@@ -80,6 +80,32 @@ public class SendsControllerTests
     }
 
     [Fact]
+    public async Task Upload_AttemptsProvided_ReturnsCreatedWithAttempts()
+    {
+        SendsController controller = CreateController();
+
+        IActionResult result = await controller.Upload(
+            new CreateSendRequest(Guid.CreateVersion7(), "測試岩館", 5, "備註", Attempts: 3),
+            CancellationToken.None);
+
+        ObjectResult created = Assert.IsType<ObjectResult>(result);
+        SendResponse response = Assert.IsType<SendResponse>(created.Value);
+        Assert.Equal(3, response.Attempts);
+    }
+
+    [Fact]
+    public async Task Upload_AttemptsNonPositive_ReturnsBadRequest()
+    {
+        SendsController controller = CreateController();
+
+        IActionResult result = await controller.Upload(
+            new CreateSendRequest(Guid.CreateVersion7(), "測試岩館", 5, "備註", Attempts: 0),
+            CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
     public async Task Upload_NoClimbAtInRequest_DefaultsToToday()
     {
         SendsController controller = CreateController();
@@ -396,6 +422,7 @@ public class SendsControllerTests
             VideoPublicId = "a",
             GymName = "舊岩館",
             Difficulty = 3,
+            Attempts = 2,
             Note = "舊備註",
         };
         SendsController controller = CreateController(new FakeSendRepository([send]));
@@ -403,7 +430,7 @@ public class SendsControllerTests
 
         IActionResult result = await controller.Update(
             send.Id,
-            new UpdateSendRequest(newClimbAt, "新岩館", 7, "新備註"),
+            new UpdateSendRequest(newClimbAt, "新岩館", 7, "新備註", 4),
             CancellationToken.None);
 
         OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
@@ -411,6 +438,7 @@ public class SendsControllerTests
         Assert.Equal(newClimbAt, response.ClimbAt);
         Assert.Equal("新岩館", response.GymName);
         Assert.Equal(7, response.Difficulty);
+        Assert.Equal(4, response.Attempts);
         Assert.Equal("新備註", response.Note);
     }
 
@@ -447,6 +475,20 @@ public class SendsControllerTests
         IActionResult result = await controller.Update(
             send.Id,
             new UpdateSendRequest(default, "新岩館", 7, "新備註"),
+            CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Update_AttemptsNonPositive_ReturnsBadRequest()
+    {
+        Send send = new Send { UploaderId = TestUploaderId, ClimbAt = DateOnly.FromDateTime(DateTime.UtcNow), VideoPublicId = "a" };
+        SendsController controller = CreateController(new FakeSendRepository([send]));
+
+        IActionResult result = await controller.Update(
+            send.Id,
+            new UpdateSendRequest(DateOnly.FromDateTime(DateTime.UtcNow), "新岩館", 7, "新備註", 0),
             CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(result);

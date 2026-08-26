@@ -31,6 +31,11 @@ public class Send
     public int? Difficulty { get; set; }
 
     /// <summary>
+    /// 嘗試次數，可為 null；若有值須為正整數。
+    /// </summary>
+    public int? Attempts { get; set; }
+
+    /// <summary>
     /// 上傳者的使用者 ID。
     /// </summary>
     public Guid UploaderId { get; set; }

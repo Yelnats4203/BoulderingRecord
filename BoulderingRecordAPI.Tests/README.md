@@ -68,6 +68,8 @@ dotnet test
 | `Upload_AuthenticatedUser_ReturnsCreatedWithBackendAssignedFields` | 已登入使用者於影片直傳 Cloudinary 完成後建立紀錄時，回應 201，且岩館名稱、難度、備註等欄位正確帶入，並由後端指派上傳者 ID 與上傳時間。 |
 | `Upload_NoAuthenticatedUser_ReturnsUnauthorized` | 未登入使用者嘗試建立紀錄時，回應 401。 |
 | `Upload_ResourceNotUploaded_ReturnsBadRequest` | 對應的影片尚未實際上傳至 Cloudinary（`ResourceExistsAsync` 回傳 false）時，回應 400，避免偽造未上傳的紀錄。 |
+| `Upload_AttemptsProvided_ReturnsCreatedWithAttempts` | 建立紀錄時帶入正整數嘗試次數，回應中的嘗試次數正確帶入。 |
+| `Upload_AttemptsNonPositive_ReturnsBadRequest` | 建立紀錄時嘗試次數帶入 0 或負數，回應 400。 |
 | `GetAll_ReturnsAllSends` | 查詢所有紀錄時，回應 200 並回傳全部紀錄清單。 |
 | `GetById_ExistingId_ReturnsSend` | 以存在的 ID 查詢單筆紀錄時，回應 200 並回傳對應紀錄。 |
 | `GetById_UnknownId_ReturnsNotFound` | 以不存在的 ID 查詢單筆紀錄時，回應 404。 |
@@ -77,8 +79,9 @@ dotnet test
 | `GetMine_UploadedAtRangeFilter_ReturnsSendsWithinRange` | 以上傳時間區間篩選時，僅回傳落在區間內的紀錄。 |
 | `GetMine_DifficultyRangeFilter_ReturnsSendsWithinRange` | 以難度區間篩選時，僅回傳難度落在區間內的紀錄。 |
 | `GetMine_NoMatchingSends_ReturnsEmpty` | 篩選條件無符合紀錄時，回應 200 並回傳空陣列。 |
-| `Update_Owner_UpdatesFields` | 本人編輯自己擁有的紀錄時，上傳時間、岩館、難度、備註皆會被覆蓋為新值。 |
+| `Update_Owner_UpdatesFields` | 本人編輯自己擁有的紀錄時，上傳時間、岩館、難度、嘗試次數、備註皆會被覆蓋為新值。 |
 | `Update_UploadedAtDefault_ReturnsBadRequest` | 上傳時間為預設值（未填）時，回應 400。 |
+| `Update_AttemptsNonPositive_ReturnsBadRequest` | 編輯紀錄時嘗試次數帶入 0 或負數，回應 400。 |
 | `Update_NotOwner_ReturnsNotFound` | 嘗試編輯非本人擁有的紀錄時，回應 404。 |
 | `Update_NotAuthenticated_ReturnsUnauthorized` | 未登入使用者嘗試編輯紀錄時，回應 401。 |
 | `Delete_Owner_DeletesRecordAndCloudinaryResource` | 本人刪除自己擁有的紀錄時，回應 204，同時刪除 Cloudinary 上對應的影片資源，且該紀錄之後查無資料。 |

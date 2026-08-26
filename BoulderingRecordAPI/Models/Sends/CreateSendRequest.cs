@@ -9,10 +9,12 @@ namespace BoulderingRecordAPI.Models.Sends;
 /// <param name="Note">備註。</param>
 /// <param name="ClimbAt">攀爬日期，未提供時預設為今日。</param>
 /// <param name="IsPublic">是否將此紀錄設為公開（好友可見），預設為公開。</param>
+/// <param name="Attempts">嘗試次數，可為 null；若有值須為正整數。</param>
 public record CreateSendRequest(
     Guid SendId,
     string? GymName,
     int? Difficulty,
     string? Note,
     DateOnly? ClimbAt = null,
-    bool IsPublic = true);
+    bool IsPublic = true,
+    int? Attempts = null);

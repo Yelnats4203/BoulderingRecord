@@ -58,6 +58,9 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("Attempts")
+                        .HasColumnType("int");
+
                     b.Property<DateOnly>("ClimbAt")
                         .HasColumnType("date");
 

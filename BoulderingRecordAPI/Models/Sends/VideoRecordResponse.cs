@@ -9,6 +9,7 @@ namespace BoulderingRecordAPI.Models.Sends;
 /// <param name="GymName">岩館名稱。</param>
 /// <param name="ClimbAt">攀爬日期。</param>
 /// <param name="Difficulty">攀岩難度。</param>
+/// <param name="Attempts">嘗試次數，可為 null；若有值須為正整數。</param>
 /// <param name="Note">備註。</param>
 /// <param name="ThumbnailUrl">Cloudinary 簽章縮圖網址。</param>
 public record VideoRecordResponse(
@@ -16,6 +17,7 @@ public record VideoRecordResponse(
     string? GymName,
     DateOnly ClimbAt,
     int? Difficulty,
+    int? Attempts,
     string? Note,
     string ThumbnailUrl)
 {
@@ -27,6 +29,7 @@ public record VideoRecordResponse(
         send.GymName,
         send.ClimbAt,
         send.Difficulty,
+        send.Attempts,
         send.Note,
         videoStorageService.GetSignedThumbnailUrl(send.VideoPublicId));
 }

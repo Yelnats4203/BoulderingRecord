@@ -54,6 +54,7 @@ export function createSend(payload: CreateSendPayload): Promise<SendResponse> {
       sendId: payload.sendId,
       gymName: payload.gymName || null,
       difficulty: payload.difficulty ? Number(payload.difficulty) : null,
+      attempts: payload.attempts ? Number(payload.attempts) : null,
       note: payload.note || null,
       climbAt: payload.climbAt || undefined,
       isPublic: payload.isPublic,
@@ -67,6 +68,7 @@ export function updateSend(id: string, payload: UpdateSendPayload): Promise<Send
       climbAt: payload.climbAt,
       gymName: payload.gymName || null,
       difficulty: payload.difficulty ? Number(payload.difficulty) : null,
+      attempts: payload.attempts ? Number(payload.attempts) : null,
       note: payload.note || null,
     })
     .then((response) => response.data)

@@ -91,6 +91,11 @@ public class SendsController(
             return BadRequest("測試帳號一日僅能上傳5筆。");
         }
 
+        if (request.Attempts is int attempts && attempts < 1)
+        {
+            return BadRequest("嘗試次數須為正整數。");
+        }
+
         // Cloudinary 上傳時另帶有 folder 參數，實際儲存位置會是 folder 與 public_id 相接後的路徑。
         string publicId = $"Bouldering/{uploaderId.Value}/sends/{uploaderId.Value}/{request.SendId}";
         bool resourceExists = await videoStorageService.ResourceExistsAsync(publicId, cancellationToken);
@@ -104,6 +109,7 @@ public class SendsController(
             Id = request.SendId,
             GymName = request.GymName,
             Difficulty = request.Difficulty,
+            Attempts = request.Attempts,
             Note = request.Note,
             UploaderId = uploaderId.Value,
             ClimbAt = request.ClimbAt ?? DateOnly.FromDateTime(DateTime.UtcNow),
@@ -145,7 +151,7 @@ public class SendsController(
     }
 
     /// <summary>
-    /// 編輯完攀紀錄的攀爬日期、岩館、難度、備註；僅上傳者本人可編輯，攀爬日期為必填。
+    /// 編輯完攀紀錄的攀爬日期、岩館、難度、嘗試次數、備註；僅上傳者本人可編輯，攀爬日期為必填。
     /// </summary>
     [TokenAuthorize]
     [HttpPut("{id:guid}")]
@@ -166,6 +172,11 @@ public class SendsController(
             return BadRequest("攀爬日期為必填。");
         }
 
+        if (request.Attempts is int attempts && attempts < 1)
+        {
+            return BadRequest("嘗試次數須為正整數。");
+        }
+
         Send? send = await sendRepository.GetByIdAsync(id, cancellationToken);
         if (send is null || send.UploaderId != uploaderId.Value)
         {
@@ -175,6 +186,7 @@ public class SendsController(
         send.ClimbAt = request.ClimbAt;
         send.GymName = request.GymName;
         send.Difficulty = request.Difficulty;
+        send.Attempts = request.Attempts;
         send.Note = request.Note;
 
         await sendRepository.SaveChangesAsync(cancellationToken);

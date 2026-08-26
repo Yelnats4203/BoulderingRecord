@@ -64,12 +64,14 @@ const errorMessage = ref<string>('')
 const climbAt = ref<string>(props.record.climbAt)
 const gymName = ref<string>(props.record.gymName ?? '')
 const difficulty = ref<string>(props.record.difficulty === null ? '' : String(props.record.difficulty))
+const attempts = ref<string>(props.record.attempts === null ? '' : String(props.record.attempts))
 const note = ref<string>(props.record.note ?? '')
 
 function startEditing(): void {
   climbAt.value = props.record.climbAt
   gymName.value = props.record.gymName ?? ''
   difficulty.value = props.record.difficulty === null ? '' : String(props.record.difficulty)
+  attempts.value = props.record.attempts === null ? '' : String(props.record.attempts)
   note.value = props.record.note ?? ''
   errorMessage.value = ''
   isEditing.value = true
@@ -91,6 +93,18 @@ function sanitizeDifficulty(): void {
   difficulty.value = String(Math.min(10, Math.max(0, parsed)))
 }
 
+function sanitizeAttempts(): void {
+  if (attempts.value === '') {
+    return
+  }
+  const parsed: number = Math.round(Number(attempts.value))
+  if (Number.isNaN(parsed)) {
+    attempts.value = ''
+    return
+  }
+  attempts.value = String(Math.max(1, parsed))
+}
+
 async function handleSave(): Promise<void> {
   errorMessage.value = ''
   isSaving.value = true
@@ -99,6 +113,7 @@ async function handleSave(): Promise<void> {
       climbAt: climbAt.value,
       gymName: gymName.value,
       difficulty: difficulty.value,
+      attempts: attempts.value,
       note: note.value,
     })
     emit('updated', {
@@ -106,6 +121,7 @@ async function handleSave(): Promise<void> {
       gymName: updated.gymName,
       climbAt: updated.climbAt,
       difficulty: updated.difficulty,
+      attempts: updated.attempts,
       note: updated.note,
     })
     isEditing.value = false
@@ -184,6 +200,10 @@ async function handleConfirmDelete(): Promise<void> {
           </datalist>
         </div>
         <div class="form-field">
+          <label for="edit-attempts">嘗試次數（選填）</label>
+          <input id="edit-attempts" v-model="attempts" type="number" min="1" step="1" @blur="sanitizeAttempts" />
+        </div>
+        <div class="form-field">
           <label for="edit-note">備註（選填）</label>
           <textarea id="edit-note" v-model="note" placeholder="可輸入Crux等等"></textarea>
         </div>
@@ -199,6 +219,7 @@ async function handleConfirmDelete(): Promise<void> {
       <template v-else>
         <div class="video-row"><span class="video-label">岩館</span><span>{{ record.gymName ?? '-' }}</span></div>
         <div class="video-row"><span class="video-label">難度</span><span>{{ formatDifficulty(record.difficulty) }}</span></div>
+        <div class="video-row"><span class="video-label">嘗試次數</span><span>{{ record.attempts ?? '-' }}</span></div>
         <div class="video-row"><span class="video-label">攀爬日期</span><span>{{ formatDate(record.climbAt) }}</span></div>
         <div class="video-row"><span class="video-label">備註</span><span>{{ record.note ?? '-' }}</span></div>
 
