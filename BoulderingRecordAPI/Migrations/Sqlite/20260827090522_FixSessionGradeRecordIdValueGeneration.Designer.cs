@@ -3,6 +3,7 @@ using System;
 using BoulderingRecordAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoulderingRecordAPI.Migrations.Sqlite
 {
     [DbContext(typeof(BoulderingRecordSqliteDbContext))]
-    partial class BoulderingRecordSqliteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260827090522_FixSessionGradeRecordIdValueGeneration")]
+    partial class FixSessionGradeRecordIdValueGeneration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.10");
@@ -129,10 +132,14 @@ namespace BoulderingRecordAPI.Migrations.Sqlite
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("HasEditPermission")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsDemoAcc")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Psw")
                         .IsRequired()

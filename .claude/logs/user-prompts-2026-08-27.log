@@ -60,3 +60,81 @@ Sec-Fetch-Dest: empty
 [2026-08-27 15:36:24] 高風險除了Login外皆修改，Login只是取得token，重複觸發不會有狀況
 [2026-08-27 15:46:43] 重啟API及網頁服務後再繼續進行測試
 [2026-08-27 15:57:47] 幫我 commit 這次的修改
+[2026-08-27 16:01:41] 另外有個問題，我是在部屬後(網頁在vercel、DB和API在azure)，編輯抱石紀錄會有已下問題，但不是必然發生，似乎是在增刪難度後儲存時會發生，但也不是必然發生；新增紀錄時尚未出現過此問題。其他API也為觸發過此問題
+Access to XMLHttpRequest at 'https://boulderingrecord-api-q3p47.azurewebsites.net/Sessions/01a04207-2bae-7e96-b20c-53be1e57f5aa' from origin 'https://bouldering-record.vercel.app' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+[2026-08-27 16:01:59] 另外有個問題，我是在部屬後(網頁在vercel、DB和API在azure)，用手機瀏覽器使用網頁，編輯抱石紀錄會有已下問題，但不是必然發生，似乎是在增刪難度後儲存時會發生，但也不是必然發生；新增紀錄時尚未出現過此問題。其他API也為觸發過此問題
+Access to XMLHttpRequest at 'https://boulderingrecord-api-q3p47.azurewebsites.net/Sessions/01a04207-2bae-7e96-b20c-53be1e57f5aa' from origin 'https://bouldering-record.vercel.app' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+[2026-08-27 16:12:12] 用電腦測試部屬版本，也有類似問題。用電腦測試確認除了cors外，有另外有500錯誤。另外一登入(查詢過DB)就會發生，所以跟喚醒無關，應是編輯紀錄時，新增難度時會有異常。
+[2026-08-27 16:31:48] 我無法在這terminal看到訊息
+[2026-08-27 16:33:05] 是否可透過azure的UI監視
+[2026-08-27 16:37:45] 2026-08-27T08:34:53.8527918Z info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+2026-08-27T08:34:53.8528632Z       Executed DbCommand (4ms) [Parameters=[@id='?' (DbType = Guid)], CommandType='Text', CommandTimeout='30']
+2026-08-27T08:34:53.8528679Z       SELECT [s1].[Id], [s1].[Date], [s1].[GymName], [s1].[UserId], [s0].[Id], [s0].[CompletedCount], [s0].[Grade], [s0].[SessionId], [s0].[UncompletedCount]
+2026-08-27T08:34:53.8528703Z       FROM (
+2026-08-27T08:34:53.8528729Z           SELECT TOP(1) [s].[Id], [s].[Date], [s].[GymName], [s].[UserId]
+2026-08-27T08:34:53.8528754Z           FROM [Sessions] AS [s]
+2026-08-27T08:34:53.852878Z           WHERE [s].[Id] = @id
+2026-08-27T08:34:53.8528803Z       ) AS [s1]
+2026-08-27T08:34:53.8528826Z       LEFT JOIN [SessionGradeRecords] AS [s0] ON [s1].[Id] = [s0].[SessionId]
+2026-08-27T08:34:53.8528848Z       ORDER BY [s1].[Id]
+2026-08-27T08:34:53.8592052Z info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+2026-08-27T08:34:53.8605435Z       Executed DbCommand (7ms) [Parameters=[@p4='?' (DbType = Guid), @p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Guid), @p3='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+2026-08-27T08:34:53.8609493Z       SET IMPLICIT_TRANSACTIONS OFF;
+2026-08-27T08:34:53.8609548Z       SET NOCOUNT ON;
+2026-08-27T08:34:53.8609583Z       UPDATE [SessionGradeRecords] SET [CompletedCount] = @p0, [Grade] = @p1, [SessionId] = @p2, [UncompletedCount] = @p3
+2026-08-27T08:34:53.8609615Z       OUTPUT 1
+2026-08-27T08:34:53.8610486Z       WHERE [Id] = @p4;
+2026-08-27T08:34:53.9486594Z fail: Microsoft.AspNetCore.Server.Kestrel[13]
+2026-08-27T08:34:53.9487614Z       Connection id "0HNO38EMLK4R0", Request id "0HNO38EMLK4R0:00000002": An unhandled exception was thrown by the application.
+2026-08-27T08:34:53.9493531Z       Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException: The database operation was expected to affect 1 row(s), but actually affected 0 row(s); data may have been modified or deleted since entities were loaded. See https://go.microsoft.com/fwlink/?LinkId=527962 for information on understanding and handling optimistic concurrency exceptions.
+2026-08-27T08:34:53.950325Z          at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ThrowAggregateUpdateConcurrencyExceptionAsync(RelationalDataReader reader, Int32 commandIndex, Int32 expectedRowsAffected, Int32 rowsAffected, CancellationToken cancellationToken)
+2026-08-27T08:34:53.950338Z          at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSetWithRowsAffectedOnlyAsync(Int32 commandIndex, RelationalDataReader reader, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9503415Z          at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeAsync(RelationalDataReader reader, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9503445Z          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9503475Z          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9503506Z          at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9513674Z          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+2026-08-27T08:34:53.951376Z          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9513795Z          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9513825Z          at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChangesAsync(IList`1 entries, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9514122Z          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9514163Z          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9514197Z          at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9514227Z          at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+2026-08-27T08:34:53.9514259Z          at BoulderingRecordAPI.Controllers.SessionsController.Update(Guid id, SessionRequest request, CancellationToken cancellationToken) in D:\BoulderingRecord\BoulderingRecordAPI\Controllers\SessionsController.cs:line 146
+2026-08-27T08:34:53.9514292Z          at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+2026-08-27T08:34:53.9514321Z          at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+2026-08-27T08:34:53.9514354Z          at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+2026-08-27T08:34:53.9514381Z          at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+2026-08-27T08:34:53.951442Z          at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+2026-08-27T08:34:53.9514454Z          at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+2026-08-27T08:34:53.9514484Z          at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+2026-08-27T08:34:53.9514512Z          at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+2026-08-27T08:34:53.9514539Z          at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+2026-08-27T08:34:53.9514568Z          at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+2026-08-27T08:34:53.9514593Z          at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+2026-08-27T08:34:53.9514621Z          at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1 application)
+[2026-08-27 16:40:50] push，接著進行AP及DB部屬
+[2026-08-27 16:49:52] 現在則固定變成409錯誤
+[2026-08-27 16:54:43] 2026-08-27T08:53:32.3081211Z info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+2026-08-27T08:53:32.3081564Z       Executed DbCommand (2ms) [Parameters=[@id='?' (DbType = Guid)], CommandType='Text', CommandTimeout='30']
+2026-08-27T08:53:32.3115476Z       SELECT [s1].[Id], [s1].[Date], [s1].[GymName], [s1].[UserId], [s0].[Id], [s0].[CompletedCount], [s0].[Grade], [s0].[SessionId], [s0].[UncompletedCount]
+2026-08-27T08:53:32.3115584Z       FROM (
+2026-08-27T08:53:32.3115617Z           SELECT TOP(1) [s].[Id], [s].[Date], [s].[GymName], [s].[UserId]
+2026-08-27T08:53:32.3115643Z           FROM [Sessions] AS [s]
+2026-08-27T08:53:32.3115668Z           WHERE [s].[Id] = @id
+2026-08-27T08:53:32.3115691Z       ) AS [s1]
+2026-08-27T08:53:32.3115717Z       LEFT JOIN [SessionGradeRecords] AS [s0] ON [s1].[Id] = [s0].[SessionId]
+2026-08-27T08:53:32.3115742Z       ORDER BY [s1].[Id]
+2026-08-27T08:53:32.3127439Z info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+2026-08-27T08:53:32.3143265Z       Executed DbCommand (2ms) [Parameters=[@p4='?' (DbType = Guid), @p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Guid), @p3='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+2026-08-27T08:53:32.3143418Z       SET IMPLICIT_TRANSACTIONS OFF;
+2026-08-27T08:53:32.3143446Z       SET NOCOUNT ON;
+2026-08-27T08:53:32.3143476Z       UPDATE [SessionGradeRecords] SET [CompletedCount] = @p0, [Grade] = @p1, [SessionId] = @p2, [UncompletedCount] = @p3
+2026-08-27T08:53:32.3143499Z       OUTPUT 1
+2026-08-27T08:53:32.3143522Z       WHERE [Id] = @p4;
+[2026-08-27 16:57:46] 新的也有相同錯誤
+[2026-08-27 17:01:13] 我想改成DB不要寫入預設值，統一由程式寫上
+[2026-08-27 17:10:10] 檢查目前DB設計，是否也有預設值的欄位(除了識別規格)，我想保持統一性，由程式寫入
+[2026-08-27 17:27:37] 之前部屬DB時沒有要執行script，與此次mirgration有何差異
+[2026-08-27 17:30:46] 好，執行 script

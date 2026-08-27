@@ -24,8 +24,8 @@ public class BoulderingRecordDbContext(DbContextOptions options)
             entity.Property(u => u.Acc).IsRequired();
             entity.HasIndex(u => u.Acc).IsUnique();
             entity.Property(u => u.Psw).IsRequired();
-            entity.Property(u => u.HasEditPermission).IsRequired().HasDefaultValue(false);
-            entity.Property(u => u.IsDemoAcc).IsRequired().HasDefaultValue(false);
+            entity.Property(u => u.HasEditPermission).IsRequired();
+            entity.Property(u => u.IsDemoAcc).IsRequired();
         });
 
         modelBuilder.Entity<Send>(entity =>
@@ -57,6 +57,7 @@ public class BoulderingRecordDbContext(DbContextOptions options)
                 gradeRecord.ToTable("SessionGradeRecords");
                 gradeRecord.WithOwner().HasForeignKey("SessionId");
                 gradeRecord.HasKey(g => g.Id);
+                gradeRecord.Property(g => g.Id).ValueGeneratedNever();
                 gradeRecord.Property(g => g.Grade).IsRequired();
                 gradeRecord.Property(g => g.CompletedCount).IsRequired();
                 gradeRecord.Property(g => g.UncompletedCount).IsRequired();

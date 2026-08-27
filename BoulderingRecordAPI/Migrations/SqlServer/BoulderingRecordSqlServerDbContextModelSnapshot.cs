@@ -134,14 +134,10 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("HasEditPermission")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDemoAcc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("bit");
 
                     b.Property<string>("Psw")
                         .IsRequired()
@@ -197,7 +193,6 @@ namespace BoulderingRecordAPI.Migrations.SqlServer
                     b.OwnsMany("BoulderingRecordAPI.Entities.SessionGradeRecord", "GradeRecords", b1 =>
                         {
                             b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<int>("CompletedCount")
