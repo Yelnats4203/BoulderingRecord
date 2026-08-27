@@ -70,6 +70,18 @@ public class SessionsControllerTests
     }
 
     [Fact]
+    public async Task Create_DuplicateGrades_ReturnsBadRequest()
+    {
+        SessionsController controller = CreateController();
+
+        IActionResult result = await controller.Create(
+            CreateRequest(gradeCounts: [new GradeCountRequest(3, 1, 0), new GradeCountRequest(3, 2, 0)]),
+            CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
     public async Task GetAll_ReturnsOnlyCurrentUserSessions()
     {
         Guid otherUserId = Guid.CreateVersion7();
@@ -228,6 +240,25 @@ public class SessionsControllerTests
         SessionResponse decreaseResponse = Assert.IsType<SessionResponse>(decreaseOkResult.Value);
         Assert.Single(decreaseResponse.GradeCounts);
         Assert.Equal(9, decreaseResponse.GradeCounts[0].Grade);
+    }
+
+    [Fact]
+    public async Task Update_DuplicateGrades_ReturnsBadRequest()
+    {
+        Session session = new Session
+        {
+            UserId = TestUserId,
+            Date = new DateOnly(2026, 8, 4),
+            GradeRecords = [new SessionGradeRecord { Grade = 1, CompletedCount = 1, UncompletedCount = 0 }],
+        };
+        SessionsController controller = CreateController(new FakeSessionRepository([session]));
+
+        IActionResult result = await controller.Update(
+            session.Id,
+            CreateRequest(gradeCounts: [new GradeCountRequest(3, 1, 0), new GradeCountRequest(3, 2, 0)]),
+            CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
     }
 
     [Fact]

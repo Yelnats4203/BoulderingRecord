@@ -14,7 +14,8 @@ function formatDateOnly(value: string): string {
 }
 
 function formatGradeCounts(record: SessionResponse): string {
-  return record.gradeCounts
+  return [...record.gradeCounts]
+    .sort((a, b) => b.grade - a.grade)
     .map((g) => `V${g.grade}: ${g.completedCount}/${g.completedCount + g.uncompletedCount}`)
     .join('、')
 }

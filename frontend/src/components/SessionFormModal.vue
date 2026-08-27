@@ -82,6 +82,12 @@ async function handleSubmit(): Promise<void> {
     return
   }
 
+  const uniqueGradeCount: number = new Set(gradeCounts.map((row) => row.grade)).size
+  if (uniqueGradeCount !== gradeCounts.length) {
+    toastStore.showToast('同一難度只能輸入一筆，請確認各難度沒有重複。', 'error')
+    return
+  }
+
   isSubmitting.value = true
   try {
     if (props.session) {

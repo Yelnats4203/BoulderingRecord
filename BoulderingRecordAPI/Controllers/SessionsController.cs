@@ -30,6 +30,11 @@ public class SessionsController(ISessionRepository sessionRepository) : Controll
             return Unauthorized();
         }
 
+        if (HasDuplicateGrades(request.GradeCounts))
+        {
+            return BadRequest("同一難度只能輸入一筆。");
+        }
+
         Session session = new Session
         {
             UserId = userId.Value,
@@ -115,6 +120,11 @@ public class SessionsController(ISessionRepository sessionRepository) : Controll
             return NotFound();
         }
 
+        if (HasDuplicateGrades(request.GradeCounts))
+        {
+            return BadRequest("同一難度只能輸入一筆。");
+        }
+
         session.Date = request.Date;
         session.GymName = request.GymName;
 
@@ -189,4 +199,7 @@ public class SessionsController(ISessionRepository sessionRepository) : Controll
         string? value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return Guid.TryParse(value, out Guid id) ? id : null;
     }
+
+    private static bool HasDuplicateGrades(List<GradeCountRequest> gradeCounts)
+        => gradeCounts.Select(g => g.Grade).Distinct().Count() != gradeCounts.Count;
 }
