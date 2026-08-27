@@ -26,6 +26,7 @@ BoulderingRecord 是一個攀岩紀錄管理系統，後端以 **.NET 10**（`ne
 ## 程式碼慣例
 
 - **不使用 `var`**（後端）：C# 區域變數一律宣告明確型別，禁止使用 `var`（包含 `out var`、tuple 解構等寫法），以利閱讀時清楚掌握型別資訊。此慣例適用於方案內所有 .NET 子專案，不適用於前端 TypeScript 程式碼。
+- **資料庫欄位不使用 DB 端預設值，一律由程式端明確賦值**：`OnModelCreating` 設定 Entity 屬性時，不使用 `HasDefaultValue(...)`／`HasDefaultValueSql(...)`，所有欄位的值都必須在程式碼中明確指定（例如建立實體時於建構式或物件初始化設定），資料庫本身不負責產生任何預設值。尤其是 Guid 主鍵，務必明確設定 `.ValueGeneratedNever()`——若讓 SQL Server 對 Guid 主鍵套用預設的 `ValueGeneratedOnAdd()`（例如不小心留下 `DEFAULT NEWID()`），會導致 EF Core 在把新物件加進已追蹤的擁有者集合（如 `OwnsMany`）時，把「主鍵已有值」誤判為「資料庫裡已存在該筆紀錄」，因而產生 UPDATE 而非 INSERT 語句，導致 `DbUpdateConcurrencyException`。詳見 `BoulderingRecordAPI/Data/BoulderingRecordDbContext.cs` 中 `SessionGradeRecord.Id` 的設定方式。
 
 ## API 測試規範（必要步驟）
 

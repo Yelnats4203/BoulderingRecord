@@ -138,3 +138,5 @@ Access to XMLHttpRequest at 'https://boulderingrecord-api-q3p47.azurewebsites.ne
 [2026-08-27 17:10:10] 檢查目前DB設計，是否也有預設值的欄位(除了識別規格)，我想保持統一性，由程式寫入
 [2026-08-27 17:27:37] 之前部屬DB時沒有要執行script，與此次mirgration有何差異
 [2026-08-27 17:30:46] 好，執行 script
+[2026-08-27 17:39:05] 把DB不要預設值，由程式寫入這點寫入claude.md
+[2026-08-27 17:41:01] commit
