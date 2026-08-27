@@ -3,7 +3,9 @@ import { ref } from 'vue'
 import { createSend, getUploadAuthorization, getUploadEligibility, uploadVideoToCloudinary } from '../api/sends'
 import { VideoCompressionError } from '../utils/videoCompression'
 import { compressVideoWebCodecs } from '../utils/videoCompressionWebCodecs'
+import { getLastGymName, setLastGymName } from '../utils/lastGymName'
 import { useToastStore } from '../stores/toast'
+import { useAuthStore } from '../stores/auth'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import GymNameInput from '../components/GymNameInput.vue'
 
@@ -16,10 +18,11 @@ function todayDateOnly(): string {
 }
 
 const toastStore = useToastStore()
+const authStore = useAuthStore()
 
 const videoFile = ref<File | null>(null)
 const climbAt = ref<string>(todayDateOnly())
-const gymName = ref<string>('')
+const gymName = ref<string>(getLastGymName(authStore.userId))
 const difficulty = ref<string>('')
 const attempts = ref<string>('')
 const note = ref<string>('')
@@ -107,9 +110,9 @@ async function handleUpload(): Promise<void> {
       isPublic: isPublic.value,
     })
     toastStore.showToast('上傳成功。', 'success')
+    setLastGymName(authStore.userId, gymName.value)
     videoFile.value = null
     climbAt.value = todayDateOnly()
-    gymName.value = ''
     difficulty.value = ''
     attempts.value = ''
     note.value = ''
