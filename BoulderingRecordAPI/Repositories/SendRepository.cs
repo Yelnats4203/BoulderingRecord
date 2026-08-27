@@ -46,7 +46,7 @@ public class SendRepository(BoulderingRecordDbContext dbContext) : ISendReposito
         }
 
         List<Send> sends = await query.ToListAsync(cancellationToken);
-        return sends.OrderByDescending(s => s.ClimbAt).ToList();
+        return sends.OrderByDescending(s => s.Id).ToList();
     }
 
     public Task<int> CountByUploaderIdAndUploadedDateAsync(

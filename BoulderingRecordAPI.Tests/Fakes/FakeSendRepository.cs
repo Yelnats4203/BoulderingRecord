@@ -46,7 +46,7 @@ public class FakeSendRepository(IEnumerable<Send>? seedSends = null) : ISendRepo
             query = query.Where(s => s.Difficulty != null && s.Difficulty <= maxDifficulty.Value);
         }
 
-        return Task.FromResult(query.OrderByDescending(s => s.ClimbAt).ToList());
+        return Task.FromResult(query.OrderByDescending(s => s.Id).ToList());
     }
 
     public Task<int> CountByUploaderIdAndUploadedDateAsync(
