@@ -13,6 +13,10 @@ const newPsw = ref<string>('')
 const isSubmitting = ref<boolean>(false)
 
 async function handleSubmit(): Promise<void> {
+  if (isSubmitting.value) {
+    return
+  }
+
   isSubmitting.value = true
   try {
     await changePassword({ oldPsw: oldPsw.value, newPsw: newPsw.value })
@@ -36,16 +40,18 @@ async function handleSubmit(): Promise<void> {
     <form class="card change-password-form" @submit.prevent="handleSubmit">
       <h2>修改密碼</h2>
 
-      <div class="form-field">
-        <label for="oldPsw">目前密碼</label>
-        <PasswordInput id="oldPsw" v-model="oldPsw" autocomplete="current-password" />
-      </div>
+      <fieldset class="change-password-fieldset" :disabled="isSubmitting">
+        <div class="form-field">
+          <label for="oldPsw">目前密碼</label>
+          <PasswordInput id="oldPsw" v-model="oldPsw" autocomplete="current-password" />
+        </div>
 
-      <div class="form-field">
-        <label for="newPsw">新密碼</label>
-        <PasswordInput id="newPsw" v-model="newPsw" autocomplete="new-password" />
-        <p class="hint-text">密碼需至少 8 碼，並包含大小寫英文、數字與特殊符號。</p>
-      </div>
+        <div class="form-field">
+          <label for="newPsw">新密碼</label>
+          <PasswordInput id="newPsw" v-model="newPsw" autocomplete="new-password" />
+          <p class="hint-text">密碼需至少 8 碼，並包含大小寫英文、數字與特殊符號。</p>
+        </div>
+      </fieldset>
 
       <button class="btn-primary" :class="{ 'btn-loading': isSubmitting }" type="submit" :disabled="isSubmitting">
         <LoadingSpinner v-if="isSubmitting" :size="16" />
@@ -63,5 +69,12 @@ async function handleSubmit(): Promise<void> {
 
 .change-password-form h2 {
   margin-top: 0;
+}
+
+.change-password-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
 }
 </style>

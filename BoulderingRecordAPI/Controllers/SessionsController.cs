@@ -4,6 +4,7 @@ using BoulderingRecordAPI.Filters;
 using BoulderingRecordAPI.Models.Sessions;
 using BoulderingRecordAPI.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BoulderingRecordAPI.Controllers;
 
@@ -99,6 +100,7 @@ public class SessionsController(ISessionRepository sessionRepository) : Controll
     [ProducesResponseType(typeof(SessionResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Update(Guid id, [FromBody] SessionRequest request, CancellationToken cancellationToken)
     {
         Guid? userId = GetUserId();
@@ -143,7 +145,14 @@ public class SessionsController(ISessionRepository sessionRepository) : Controll
             gradeRecords.RemoveRange(request.GradeCounts.Count, gradeRecords.Count - request.GradeCounts.Count);
         }
 
-        await sessionRepository.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await sessionRepository.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Conflict("此紀錄已被其他請求同時修改，請重新整理後再試一次。");
+        }
 
         return Ok(SessionResponse.FromEntity(session));
     }

@@ -15,6 +15,10 @@ const isDemoAcc = ref<boolean>(true)
 const isSubmitting = ref<boolean>(false)
 
 async function handleSubmit(): Promise<void> {
+  if (isSubmitting.value) {
+    return
+  }
+
   isSubmitting.value = true
   try {
     await createUser({
@@ -43,35 +47,37 @@ async function handleSubmit(): Promise<void> {
     <form class="card create-user-form" @submit.prevent="handleSubmit">
       <h2>新增使用者</h2>
 
-      <div class="form-field">
-        <label for="username">使用者名稱</label>
-        <input id="username" v-model="username" type="text" required />
-      </div>
+      <fieldset class="create-user-fieldset" :disabled="isSubmitting">
+        <div class="form-field">
+          <label for="username">使用者名稱</label>
+          <input id="username" v-model="username" type="text" required />
+        </div>
 
-      <div class="form-field">
-        <label for="acc">帳號</label>
-        <input id="acc" v-model="acc" type="text" autocomplete="off" required />
-      </div>
+        <div class="form-field">
+          <label for="acc">帳號</label>
+          <input id="acc" v-model="acc" type="text" autocomplete="off" required />
+        </div>
 
-      <div class="form-field">
-        <label for="psw">密碼</label>
-        <PasswordInput id="psw" v-model="psw" autocomplete="new-password" />
-        <p class="hint-text">密碼需至少 8 碼，並包含大小寫英文、數字與特殊符號。</p>
-      </div>
+        <div class="form-field">
+          <label for="psw">密碼</label>
+          <PasswordInput id="psw" v-model="psw" autocomplete="new-password" />
+          <p class="hint-text">密碼需至少 8 碼，並包含大小寫英文、數字與特殊符號。</p>
+        </div>
 
-      <div class="form-field form-field-checkbox">
-        <label for="hasEditPermission">
-          <input id="hasEditPermission" v-model="hasEditPermission" type="checkbox" />
-          賦予編輯權限
-        </label>
-      </div>
+        <div class="form-field form-field-checkbox">
+          <label for="hasEditPermission">
+            <input id="hasEditPermission" v-model="hasEditPermission" type="checkbox" />
+            賦予編輯權限
+          </label>
+        </div>
 
-      <div class="form-field form-field-checkbox">
-        <label for="isDemoAcc">
-          <input id="isDemoAcc" v-model="isDemoAcc" type="checkbox" />
-          測試帳號
-        </label>
-      </div>
+        <div class="form-field form-field-checkbox">
+          <label for="isDemoAcc">
+            <input id="isDemoAcc" v-model="isDemoAcc" type="checkbox" />
+            測試帳號
+          </label>
+        </div>
+      </fieldset>
 
       <button class="btn-primary" :class="{ 'btn-loading': isSubmitting }" type="submit" :disabled="isSubmitting">
         <LoadingSpinner v-if="isSubmitting" :size="16" />
@@ -89,6 +95,13 @@ async function handleSubmit(): Promise<void> {
 
 .create-user-form h2 {
   margin-top: 0;
+}
+
+.create-user-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
 }
 
 .form-field-checkbox label {

@@ -110,6 +110,7 @@ dotnet test
 | `GetById_UnknownId_ReturnsNotFound` | 以不存在的 ID 查詢活動紀錄時，回應 404。 |
 | `Update_Owner_UpdatesFieldsAndGradeCounts` | 本人更新自己擁有的活動紀錄時，日期、岩館名稱與各級數統計皆會被覆蓋為新值。 |
 | `Update_Owner_ChangingGradeCountSize_AddsAndRemovesRecords` | 更新時若各級數統計筆數增加或減少，僅新增/刪除差額筆數，就地更新既有筆數，結果的筆數與內容皆正確。 |
+| `Update_ConcurrentModification_ReturnsConflict` | 更新時若資料庫層拋出 `DbUpdateConcurrencyException`（如同一紀錄遭併發修改），回應 409 而非未處理例外。 |
 | `Update_NotOwner_ReturnsNotFound` | 嘗試更新非本人擁有的活動紀錄時，回應 404。 |
 | `Delete_Owner_ReturnsNoContentAndRemoves` | 本人刪除自己擁有的活動紀錄時，回應 204，且該紀錄之後查無資料。 |
 | `Delete_NotOwner_ReturnsNotFound` | 嘗試刪除非本人擁有的活動紀錄時，回應 404。 |

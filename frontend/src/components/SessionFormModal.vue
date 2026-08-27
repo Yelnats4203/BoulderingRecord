@@ -64,6 +64,10 @@ function removeGradeRow(index: number): void {
 }
 
 async function handleSubmit(): Promise<void> {
+  if (isSubmitting.value) {
+    return
+  }
+
   const gradeCounts = gradeRows.value
     .filter((row) => row.grade !== '')
     .map((row) => ({
@@ -126,45 +130,47 @@ async function handleConfirmDelete(): Promise<void> {
       </div>
 
       <form class="session-form" @submit.prevent="handleSubmit">
-        <div class="form-field">
-          <label for="session-date">日期</label>
-          <input id="session-date" v-model="date" type="date" required />
-        </div>
-
-        <div class="form-field">
-          <label for="session-gym-name">岩館名稱</label>
-          <GymNameInput id="session-gym-name" v-model="gymName" placeholder="選填" />
-        </div>
-
-        <div class="grade-rows">
-          <div v-for="(row, index) in gradeRows" :key="index" class="grade-row">
-            <div class="form-field">
-              <label :for="`session-grade-${index}`">難度（V）</label>
-              <input :id="`session-grade-${index}`" v-model="row.grade" type="number" min="0" required />
-            </div>
-
-            <div class="form-field">
-              <label :for="`session-completed-${index}`">完攀數</label>
-              <input :id="`session-completed-${index}`" v-model="row.completedCount" type="number" min="0" />
-            </div>
-
-            <div class="form-field">
-              <label :for="`session-uncompleted-${index}`">未完攀數</label>
-              <input :id="`session-uncompleted-${index}`" v-model="row.uncompletedCount" type="number" min="0" />
-            </div>
-
-            <button
-              type="button"
-              class="btn-secondary remove-grade-btn"
-              :disabled="gradeRows.length === 1"
-              @click="removeGradeRow(index)"
-            >
-              移除
-            </button>
+        <fieldset class="session-fieldset" :disabled="isSubmitting">
+          <div class="form-field">
+            <label for="session-date">日期</label>
+            <input id="session-date" v-model="date" type="date" required />
           </div>
-        </div>
 
-        <button type="button" class="btn-secondary add-grade-btn" @click="addGradeRow">新增難度</button>
+          <div class="form-field">
+            <label for="session-gym-name">岩館名稱</label>
+            <GymNameInput id="session-gym-name" v-model="gymName" placeholder="選填" />
+          </div>
+
+          <div class="grade-rows">
+            <div v-for="(row, index) in gradeRows" :key="index" class="grade-row">
+              <div class="form-field">
+                <label :for="`session-grade-${index}`">難度（V）</label>
+                <input :id="`session-grade-${index}`" v-model="row.grade" type="number" min="0" required />
+              </div>
+
+              <div class="form-field">
+                <label :for="`session-completed-${index}`">完攀數</label>
+                <input :id="`session-completed-${index}`" v-model="row.completedCount" type="number" min="0" />
+              </div>
+
+              <div class="form-field">
+                <label :for="`session-uncompleted-${index}`">未完攀數</label>
+                <input :id="`session-uncompleted-${index}`" v-model="row.uncompletedCount" type="number" min="0" />
+              </div>
+
+              <button
+                type="button"
+                class="btn-secondary remove-grade-btn"
+                :disabled="gradeRows.length === 1"
+                @click="removeGradeRow(index)"
+              >
+                移除
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="btn-secondary add-grade-btn" @click="addGradeRow">新增難度</button>
+        </fieldset>
 
         <div class="form-actions">
           <button
@@ -231,6 +237,13 @@ async function handleConfirmDelete(): Promise<void> {
 .modal-header h2 {
   margin: 0;
   font-size: 1.1rem;
+}
+
+.session-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
 }
 
 .grade-rows {

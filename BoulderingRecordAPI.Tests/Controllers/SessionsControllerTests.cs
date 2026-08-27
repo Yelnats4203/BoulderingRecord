@@ -4,6 +4,7 @@ using BoulderingRecordAPI.Models.Sessions;
 using BoulderingRecordAPI.Tests.Fakes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Session = BoulderingRecordAPI.Entities.Session;
 using SessionGradeRecord = BoulderingRecordAPI.Entities.SessionGradeRecord;
 
@@ -227,6 +228,26 @@ public class SessionsControllerTests
         SessionResponse decreaseResponse = Assert.IsType<SessionResponse>(decreaseOkResult.Value);
         Assert.Single(decreaseResponse.GradeCounts);
         Assert.Equal(9, decreaseResponse.GradeCounts[0].Grade);
+    }
+
+    [Fact]
+    public async Task Update_ConcurrentModification_ReturnsConflict()
+    {
+        Session session = new Session
+        {
+            UserId = TestUserId,
+            Date = new DateOnly(2026, 8, 4),
+            GradeRecords = [new SessionGradeRecord { Grade = 1, CompletedCount = 1, UncompletedCount = 0 }],
+        };
+        FakeSessionRepository repository = new FakeSessionRepository([session])
+        {
+            SaveChangesOverride = () => throw new DbUpdateConcurrencyException(),
+        };
+        SessionsController controller = CreateController(repository);
+
+        IActionResult result = await controller.Update(session.Id, CreateRequest(), CancellationToken.None);
+
+        Assert.IsType<ConflictObjectResult>(result);
     }
 
     [Fact]

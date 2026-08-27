@@ -61,6 +61,10 @@ function sanitizeAttempts(): void {
 }
 
 async function handleUpload(): Promise<void> {
+  if (isCompressing.value || isUploading.value) {
+    return
+  }
+
   if (!videoFile.value) {
     toastStore.showToast('請選擇要上傳的影片檔案。', 'error')
     return
@@ -134,54 +138,56 @@ async function handleUpload(): Promise<void> {
     <form class="card upload-form" @submit.prevent="handleUpload">
       <h2>上傳完攀影片</h2>
 
-      <div class="form-field">
-        <label for="video">完攀影片檔案</label>
-        <input id="video" type="file" accept="video/mp4,video/quicktime,.mp4,.mov" @change="handleFileChange" required />
-      </div>
-
-      <div class="form-field">
-        <label for="climbAt">攀爬日期</label>
-        <input id="climbAt" v-model="climbAt" type="date" />
-      </div>
-
-      <div class="form-field">
-        <label for="gymName">岩館名稱（選填）</label>
-        <GymNameInput id="gymName" v-model="gymName" />
-      </div>
-
-      <div class="form-field">
-        <label for="difficulty">難度（選填）</label>
-        <div class="difficulty-input-wrapper">
-          <span class="difficulty-prefix">V</span>
-          <input
-            id="difficulty"
-            v-model="difficulty"
-            type="number"
-            list="difficulty-options"
-            min="0"
-            max="10"
-            step="1"
-            @blur="sanitizeDifficulty"
-          />
+      <fieldset class="upload-fieldset" :disabled="isCompressing || isUploading">
+        <div class="form-field">
+          <label for="video">完攀影片檔案</label>
+          <input id="video" type="file" accept="video/mp4,video/quicktime,.mp4,.mov" @change="handleFileChange" required />
         </div>
-        <datalist id="difficulty-options">
-          <option v-for="n in 11" :key="n" :value="n - 1">V{{ n - 1 }}</option>
-        </datalist>
-      </div>
 
-      <div class="form-field">
-        <label for="attempts">嘗試次數（選填）</label>
-        <input id="attempts" v-model="attempts" type="number" min="1" step="1" @blur="sanitizeAttempts" />
-      </div>
+        <div class="form-field">
+          <label for="climbAt">攀爬日期</label>
+          <input id="climbAt" v-model="climbAt" type="date" />
+        </div>
 
-      <div class="form-field">
-        <label for="note">備註（選填）</label>
-        <textarea id="note" v-model="note" placeholder="可輸入Crux等等"></textarea>
-      </div>
+        <div class="form-field">
+          <label for="gymName">岩館名稱（選填）</label>
+          <GymNameInput id="gymName" v-model="gymName" />
+        </div>
 
-      <div class="form-field form-field-checkbox">
-        <label><input v-model="isPublic" type="checkbox" /> 公開影片（好友可見）</label>
-      </div>
+        <div class="form-field">
+          <label for="difficulty">難度（選填）</label>
+          <div class="difficulty-input-wrapper">
+            <span class="difficulty-prefix">V</span>
+            <input
+              id="difficulty"
+              v-model="difficulty"
+              type="number"
+              list="difficulty-options"
+              min="0"
+              max="10"
+              step="1"
+              @blur="sanitizeDifficulty"
+            />
+          </div>
+          <datalist id="difficulty-options">
+            <option v-for="n in 11" :key="n" :value="n - 1">V{{ n - 1 }}</option>
+          </datalist>
+        </div>
+
+        <div class="form-field">
+          <label for="attempts">嘗試次數（選填）</label>
+          <input id="attempts" v-model="attempts" type="number" min="1" step="1" @blur="sanitizeAttempts" />
+        </div>
+
+        <div class="form-field">
+          <label for="note">備註（選填）</label>
+          <textarea id="note" v-model="note" placeholder="可輸入Crux等等"></textarea>
+        </div>
+
+        <div class="form-field form-field-checkbox">
+          <label><input v-model="isPublic" type="checkbox" /> 公開影片（好友可見）</label>
+        </div>
+      </fieldset>
 
       <button
         class="btn-primary"
@@ -206,6 +212,13 @@ async function handleUpload(): Promise<void> {
 
 .upload-form h2 {
   margin-top: 0;
+}
+
+.upload-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
 }
 
 .form-field-checkbox label {

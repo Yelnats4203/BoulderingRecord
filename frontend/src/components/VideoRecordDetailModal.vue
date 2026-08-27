@@ -106,6 +106,10 @@ function sanitizeAttempts(): void {
 }
 
 async function handleSave(): Promise<void> {
+  if (isSaving.value) {
+    return
+  }
+
   errorMessage.value = ''
   isSaving.value = true
   try {
@@ -172,41 +176,43 @@ async function handleConfirmDelete(): Promise<void> {
       <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
 
       <form v-if="isEditing" class="edit-form" @submit.prevent="handleSave">
-        <div class="form-field">
-          <label for="edit-climb-at">攀爬日期</label>
-          <input id="edit-climb-at" v-model="climbAt" type="date" required />
-        </div>
-        <div class="form-field">
-          <label for="edit-gym-name">岩館（選填）</label>
-          <GymNameInput id="edit-gym-name" v-model="gymName" />
-        </div>
-        <div class="form-field">
-          <label for="edit-difficulty">難度（選填）</label>
-          <div class="difficulty-input-wrapper">
-            <span class="difficulty-prefix">V</span>
-            <input
-              id="edit-difficulty"
-              v-model="difficulty"
-              type="number"
-              list="edit-difficulty-options"
-              min="0"
-              max="10"
-              step="1"
-              @blur="sanitizeDifficulty"
-            />
+        <fieldset class="edit-fieldset" :disabled="isSaving">
+          <div class="form-field">
+            <label for="edit-climb-at">攀爬日期</label>
+            <input id="edit-climb-at" v-model="climbAt" type="date" required />
           </div>
-          <datalist id="edit-difficulty-options">
-            <option v-for="n in 11" :key="n" :value="n - 1">V{{ n - 1 }}</option>
-          </datalist>
-        </div>
-        <div class="form-field">
-          <label for="edit-attempts">嘗試次數（選填）</label>
-          <input id="edit-attempts" v-model="attempts" type="number" min="1" step="1" @blur="sanitizeAttempts" />
-        </div>
-        <div class="form-field">
-          <label for="edit-note">備註（選填）</label>
-          <textarea id="edit-note" v-model="note" placeholder="可輸入Crux等等"></textarea>
-        </div>
+          <div class="form-field">
+            <label for="edit-gym-name">岩館（選填）</label>
+            <GymNameInput id="edit-gym-name" v-model="gymName" />
+          </div>
+          <div class="form-field">
+            <label for="edit-difficulty">難度（選填）</label>
+            <div class="difficulty-input-wrapper">
+              <span class="difficulty-prefix">V</span>
+              <input
+                id="edit-difficulty"
+                v-model="difficulty"
+                type="number"
+                list="edit-difficulty-options"
+                min="0"
+                max="10"
+                step="1"
+                @blur="sanitizeDifficulty"
+              />
+            </div>
+            <datalist id="edit-difficulty-options">
+              <option v-for="n in 11" :key="n" :value="n - 1">V{{ n - 1 }}</option>
+            </datalist>
+          </div>
+          <div class="form-field">
+            <label for="edit-attempts">嘗試次數（選填）</label>
+            <input id="edit-attempts" v-model="attempts" type="number" min="1" step="1" @blur="sanitizeAttempts" />
+          </div>
+          <div class="form-field">
+            <label for="edit-note">備註（選填）</label>
+            <textarea id="edit-note" v-model="note" placeholder="可輸入Crux等等"></textarea>
+          </div>
+        </fieldset>
         <div class="edit-actions">
           <button class="btn-secondary" type="button" :disabled="isSaving" @click="cancelEditing">取消</button>
           <button class="btn-primary" :class="{ 'btn-loading': isSaving }" type="submit" :disabled="isSaving">
@@ -314,6 +320,13 @@ async function handleConfirmDelete(): Promise<void> {
   justify-content: flex-end;
   gap: 12px;
   margin-top: 16px;
+}
+
+.edit-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
 }
 
 .edit-form .form-field:last-of-type {

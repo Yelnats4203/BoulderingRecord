@@ -36,5 +36,8 @@ public class FakeSessionRepository(IEnumerable<Session>? seedSessions = null) : 
 
     public void Remove(Session session) => _sessions.Remove(session);
 
-    public Task SaveChangesAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public Func<Task>? SaveChangesOverride { get; set; }
+
+    public Task SaveChangesAsync(CancellationToken cancellationToken = default)
+        => SaveChangesOverride?.Invoke() ?? Task.CompletedTask;
 }
