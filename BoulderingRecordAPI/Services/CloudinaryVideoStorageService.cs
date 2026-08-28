@@ -61,6 +61,7 @@ public class CloudinaryVideoStorageService(Cloudinary cloudinary, IOptions<Cloud
             .ResourceType("video")
             .Type(AuthenticatedType)
             .Signed(true)
+            .ForceVersion(false)
             .BuildUrl(publicId);
     }
 
@@ -71,6 +72,7 @@ public class CloudinaryVideoStorageService(Cloudinary cloudinary, IOptions<Cloud
             .Type(AuthenticatedType)
             .Signed(true)
             .Format("jpg")
+            .ForceVersion(false)
             .BuildUrl(publicId);
     }
 

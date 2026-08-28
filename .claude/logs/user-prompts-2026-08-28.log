@@ -3,3 +3,9 @@
 [2026-08-28 13:36:19] 在部屬環境下的既有資料搬移了，請幫我產一份在proc下的SQL修改指令
 [2026-08-28 13:37:40] 直接執行在azure SQL上
 [2026-08-28 13:43:14] git commit、push、並部屬AP到AZURE
+[2026-08-28 13:53:10] 開啟AP及網頁服務，開啟網頁
+[2026-08-28 14:01:16] 我現在部屬環境的影片及縮圖皆取得不到，這是前端打出去的url
+https://res.cloudinary.com/x4n8w2q5/video/authenticated/s--pMYmz1EP--/v1/Bouldering/proc/01a00f19-4178-707e-9b18-1cc9f83ebca7/sends/01a00f19-4178-707e-9b18-1cc9f83ebca7/01a03e5c-2f64-7418-9cd4-ef025ce434da.jpg
+[2026-08-28 14:14:05] version會影響什麼？
+[2026-08-28 14:16:21] 現行url取不到東西的原因是什麼
+[2026-08-28 14:17:47] 繼續 build、測試、commit 並部署這個修正
