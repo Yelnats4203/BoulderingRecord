@@ -2,11 +2,12 @@ using System.Net;
 using BoulderingRecordAPI.Options;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace BoulderingRecordAPI.Services;
 
-public class CloudinaryVideoStorageService(Cloudinary cloudinary, IOptions<CloudinaryOptions> options) : IVideoStorageService
+public class CloudinaryVideoStorageService(Cloudinary cloudinary, IOptions<CloudinaryOptions> options, IHostEnvironment hostEnvironment) : IVideoStorageService
 {
     private const string AuthenticatedType = "authenticated";
 
@@ -16,7 +17,7 @@ public class CloudinaryVideoStorageService(Cloudinary cloudinary, IOptions<Cloud
     {
         Guid sendId = Guid.CreateVersion7();
         string publicId = $"sends/{userId}/{sendId}";
-        string folder = $"Bouldering/{userId}";
+        string folder = GetFolder(userId);
         long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         Dictionary<string, object> parametersToSign = new Dictionary<string, object>
@@ -29,6 +30,17 @@ public class CloudinaryVideoStorageService(Cloudinary cloudinary, IOptions<Cloud
         string signature = cloudinary.Api.SignParameters(parametersToSign);
 
         return new VideoUploadAuthorization(sendId, publicId, folder, _options.CloudName, _options.ApiKey, timestamp, signature);
+    }
+
+    public string BuildFullPublicId(Guid userId, Guid sendId)
+    {
+        return $"{GetFolder(userId)}/sends/{userId}/{sendId}";
+    }
+
+    private string GetFolder(Guid userId)
+    {
+        string environmentSegment = hostEnvironment.IsDevelopment() ? "dev" : "proc";
+        return $"Bouldering/{environmentSegment}/{userId}";
     }
 
     public async Task<bool> ResourceExistsAsync(string publicId, CancellationToken cancellationToken = default)

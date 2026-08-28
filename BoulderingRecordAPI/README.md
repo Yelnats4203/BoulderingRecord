@@ -64,7 +64,7 @@ Options/         # 可設定選項（JwtSettings、CloudinaryOptions）
 
 影片儲存改採 **Cloudinary**（雲端物件儲存 + CDN），實際流程由 `IVideoStorageService` 抽象化，目前實作 `CloudinaryVideoStorageService`：
 
-1. 前端呼叫 `POST /sends/upload-authorization`，後端產生 `sendId`、`public_id`（`sends/{userId}/{sendId}`）、`folder`（`Bouldering/{userId}`，讓影片在 Cloudinary Console 中依使用者歸類到對應資料夾）與時間戳記，並以 API Secret 簽章，回傳給前端。
+1. 前端呼叫 `POST /sends/upload-authorization`，後端產生 `sendId`、`public_id`（`sends/{userId}/{sendId}`）、`folder`（`Bouldering/{dev|proc}/{userId}`，依 `IHostEnvironment.IsDevelopment()` 判斷目前是開發環境還是部署環境，並讓影片在 Cloudinary Console 中依使用者歸類到對應資料夾）與時間戳記，並以 API Secret 簽章，回傳給前端。
 2. 前端持簽章資訊直接將影片 `multipart/form-data` 上傳到 Cloudinary 的 Upload API（`https://api.cloudinary.com/v1_1/{cloudName}/video/upload`），影片位元組不經過本系統後端。上傳時指定 `type=authenticated`，確保未經簽章一律無法存取。
 3. 前端呼叫 `POST /sends` 建立紀錄，後端會先以 Cloudinary Admin API 確認該 `public_id` 真的存在，才建立 `Send`（`VideoPublicId` 存放 Cloudinary 的 public ID）。
 

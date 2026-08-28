@@ -15,6 +15,9 @@ public class FakeVideoStorageService(bool resourceExists = true, bool deleteSucc
         return new VideoUploadAuthorization(sendId, publicId, folder, "fake-cloud", "fake-api-key", 0, "fake-signature");
     }
 
+    public string BuildFullPublicId(Guid userId, Guid sendId)
+        => $"Bouldering/{userId}/sends/{userId}/{sendId}";
+
     public Task<bool> ResourceExistsAsync(string publicId, CancellationToken cancellationToken = default)
         => Task.FromResult(resourceExists);
 

@@ -96,8 +96,7 @@ public class SendsController(
             return BadRequest("嘗試次數須為正整數。");
         }
 
-        // Cloudinary 上傳時另帶有 folder 參數，實際儲存位置會是 folder 與 public_id 相接後的路徑。
-        string publicId = $"Bouldering/{uploaderId.Value}/sends/{uploaderId.Value}/{request.SendId}";
+        string publicId = videoStorageService.BuildFullPublicId(uploaderId.Value, request.SendId);
         bool resourceExists = await videoStorageService.ResourceExistsAsync(publicId, cancellationToken);
         if (!resourceExists)
         {
